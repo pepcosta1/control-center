@@ -4,6 +4,10 @@ function requireAuth(req, res, next) {
   if (req.session && req.session.user) {
     return next();
   }
+  // Els dispositius amb accés limitat entren sense login (només endolls i llista)
+  if (isRestricted(req)) {
+    return next();
+  }
   res.status(401).json({ ok: false, error: 'No autenticat' });
 }
 

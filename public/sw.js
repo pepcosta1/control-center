@@ -1,5 +1,5 @@
 // Service worker: memòria cau per a l'app shell; l'API sempre va per xarxa.
-const CACHE = 'cc-v11';
+const CACHE = 'cc-v12';
 const APP_SHELL = [
   '/',
   '/index.html',

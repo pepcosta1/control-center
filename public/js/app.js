@@ -884,9 +884,10 @@ async function start() {
 
   restrictedMode = !!me.restricted;
   if (restrictedMode) {
-    // Mode limitat: només endolls i llista de la compra
+    // Mode limitat: només endolls i llista de la compra, sense botó de sortir
     document.getElementById('spotify-card').classList.add('hidden');
     document.getElementById('discord-card').classList.add('hidden');
+    document.getElementById('logout-btn').classList.add('hidden');
   }
 
   loadAll();

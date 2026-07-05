@@ -73,6 +73,10 @@ router.get('/me', (req, res) => {
   if (req.session && req.session.user) {
     return res.json({ ok: true, user: req.session.user, restricted: isRestricted(req) });
   }
+  // Dispositiu limitat: sessió automàtica de convidat, sense login
+  if (isRestricted(req)) {
+    return res.json({ ok: true, user: { name: 'convidat' }, restricted: true });
+  }
   res.status(401).json({ ok: false, error: 'No autenticat' });
 });
 
