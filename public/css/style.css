@@ -357,6 +357,79 @@ details[open] .recent-title { color: var(--text); }
 
 .link { color: var(--accent); }
 
+/* Llista de la compra */
+.shop-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.shop-form input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  font-size: 1rem;
+}
+
+.shop-form input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+
+.shop-list { display: flex; flex-direction: column; gap: 0.25rem; }
+
+.shop-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.3rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.shop-row:last-child { border-bottom: none; }
+
+.shop-label {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.shop-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--success);
+  flex-shrink: 0;
+}
+
+.shop-label span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shop-done .shop-label span {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.shop-delete {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.shop-delete:hover { color: var(--danger); background: var(--card-hover); }
+
 /* Botó i modal de lletra */
 .btn-lyrics {
   display: block;

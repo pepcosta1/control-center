@@ -497,6 +497,97 @@ async function loadSpotify() {
 }
 
 // =====================================================================
+// LLISTA DE LA COMPRA
+// =====================================================================
+const shopForm = document.getElementById('shop-form');
+const shopInput = document.getElementById('shop-input');
+const shopList = document.getElementById('shop-list');
+const shopClear = document.getElementById('shop-clear');
+
+function renderShopping(items) {
+  if (!items.length) {
+    shopList.innerHTML = '<p class="muted">La llista és buida. Afegeix el primer producte!</p>';
+    shopClear.classList.add('hidden');
+    return;
+  }
+
+  // Pendents primer, comprats al final
+  const sorted = [...items].sort((a, b) => (a.done === b.done ? 0 : a.done ? 1 : -1));
+  shopList.innerHTML = '';
+  sorted.forEach((item) => {
+    const row = document.createElement('div');
+    row.className = 'shop-row' + (item.done ? ' shop-done' : '');
+
+    const label = document.createElement('label');
+    label.className = 'shop-label';
+    const check = document.createElement('input');
+    check.type = 'checkbox';
+    check.checked = item.done;
+    check.addEventListener('change', async () => {
+      try {
+        await api(`/api/shopping/${item.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ done: check.checked }),
+        });
+        loadShopping();
+      } catch (err) {
+        check.checked = !check.checked;
+      }
+    });
+    const text = document.createElement('span');
+    text.textContent = item.text;
+    label.append(check, text);
+
+    const del = document.createElement('button');
+    del.className = 'shop-delete';
+    del.title = 'Esborra';
+    del.textContent = '✕';
+    del.addEventListener('click', async () => {
+      try {
+        await api(`/api/shopping/${item.id}`, { method: 'DELETE' });
+        loadShopping();
+      } catch (err) { /* ignora */ }
+    });
+
+    row.append(label, del);
+    shopList.appendChild(row);
+  });
+
+  shopClear.classList.toggle('hidden', !items.some((i) => i.done));
+}
+
+async function loadShopping() {
+  try {
+    const { items } = await api('/api/shopping');
+    renderShopping(items);
+  } catch (err) {
+    shopList.innerHTML = `<p class="error">${err.message}</p>`;
+  }
+}
+
+shopForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const text = shopInput.value.trim();
+  if (!text) return;
+  shopInput.value = '';
+  try {
+    await api('/api/shopping', { method: 'POST', body: JSON.stringify({ text }) });
+    loadShopping();
+  } catch (err) {
+    alert(`No s'ha pogut afegir: ${err.message}`);
+    shopInput.value = text;
+  }
+  shopInput.focus();
+});
+
+shopClear.addEventListener('click', async () => {
+  try {
+    await api('/api/shopping/clear-done', { method: 'POST' });
+    loadShopping();
+  } catch (err) { /* ignora */ }
+});
+
+// =====================================================================
 // DISCORD
 // =====================================================================
 const discordBadge = document.getElementById('discord-badge');
@@ -560,6 +651,7 @@ function loadAll() {
   loadMeross();
   loadSpotify();
   loadDiscord();
+  loadShopping();
 }
 
 async function start() {

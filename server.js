@@ -36,6 +36,7 @@ app.use('/api/auth', require('./src/routes/auth'));
 app.use('/api/meross', requireAuth, require('./src/routes/meross'));
 app.use('/api/spotify', requireAuth, require('./src/routes/spotify'));
 app.use('/api/discord', requireAuth, require('./src/routes/discord'));
+app.use('/api/shopping', requireAuth, require('./src/routes/shopping'));
 
 // 404 JSON per a rutes /api desconegudes
 app.use('/api', (req, res) => {
