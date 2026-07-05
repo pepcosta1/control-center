@@ -204,6 +204,65 @@ async function recentlyPlayed(limit = 10) {
   }));
 }
 
+const SEARCH_TYPES = ['track', 'album', 'artist', 'playlist'];
+
+async function search(query, type = 'track', limit = 10) {
+  if (!SEARCH_TYPES.includes(type)) {
+    throw Object.assign(new Error(`Tipus de cerca invàlid (${SEARCH_TYPES.join(', ')})`), { status: 400 });
+  }
+  const params = new URLSearchParams({
+    q: query,
+    type,
+    // Les apps de Spotify en mode desenvolupament accepten com a màxim 10 resultats
+    limit: String(Math.min(Math.max(limit, 1), 10)),
+  });
+  const d = await api('GET', `/search?${params.toString()}`);
+
+  const smallestImage = (images) =>
+    images && images.length ? images[images.length - 1].url : null;
+
+  const items = (d[`${type}s`] && d[`${type}s`].items) || [];
+  return items
+    .filter(Boolean) // Spotify de vegades retorna entrades null a playlists
+    .map((item) => {
+      switch (type) {
+        case 'track':
+          return {
+            name: item.name,
+            subtitle: (item.artists || []).map((a) => a.name).join(', '),
+            image: item.album ? smallestImage(item.album.images) : null,
+            uri: item.uri,
+            type,
+          };
+        case 'album':
+          return {
+            name: item.name,
+            subtitle: (item.artists || []).map((a) => a.name).join(', '),
+            image: smallestImage(item.images),
+            uri: item.uri,
+            type,
+          };
+        case 'artist':
+          return {
+            name: item.name,
+            subtitle: 'Artista',
+            image: smallestImage(item.images),
+            uri: item.uri,
+            type,
+          };
+        case 'playlist':
+        default:
+          return {
+            name: item.name,
+            subtitle: item.owner ? `Llista de ${item.owner.display_name}` : 'Llista',
+            image: smallestImage(item.images),
+            uri: item.uri,
+            type,
+          };
+      }
+    });
+}
+
 async function playlists() {
   const d = await api('GET', '/me/playlists?limit=50');
   return (d.items || []).map((p) => ({
@@ -232,4 +291,5 @@ module.exports = {
   setVolume,
   devices,
   transferPlayback,
+  search,
 };

@@ -334,6 +334,41 @@ body {
   flex-shrink: 0;
 }
 
+/* Cercador Spotify */
+.sp-search {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.sp-search input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.95rem;
+}
+
+.sp-search input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+
+.sp-search select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.5rem 0.3rem;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  max-width: 6.5rem;
+}
+
+#sp-search-results { margin-top: 0.6rem; max-height: 340px; overflow-y: auto; }
+
+.search-clear { margin-bottom: 0.4rem; align-self: flex-start; }
+
 /* Escoltades recentment (desplegable) */
 .recent-section { margin-top: 1rem; }
 

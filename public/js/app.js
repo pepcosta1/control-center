@@ -204,6 +204,17 @@ function buildSpotifyPlayer() {
       <select id="sp-playlist"><option value="">Les meves playlists…</option></select>
       <button id="sp-play-playlist" class="btn-small">Reprodueix</button>
     </div>
+    <form id="sp-search-form" class="sp-search">
+      <input type="search" id="sp-search-input" placeholder="Cerca a Spotify…" autocomplete="off">
+      <select id="sp-search-type">
+        <option value="track">Cançons</option>
+        <option value="album">Àlbums</option>
+        <option value="artist">Artistes</option>
+        <option value="playlist">Llistes</option>
+      </select>
+      <button type="submit" class="btn-small">🔍</button>
+    </form>
+    <div id="sp-search-results" class="recent-list"></div>
     <p id="sp-error" class="error hidden"></p>
     <details class="recent-section" id="sp-recent-details">
       <summary class="recent-title">Escoltades recentment ▾</summary>
@@ -300,6 +311,25 @@ function buildSpotifyPlayer() {
     }
   });
 
+  // Cercador
+  document.getElementById('sp-search-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const q = document.getElementById('sp-search-input').value.trim();
+    const type = document.getElementById('sp-search-type').value;
+    const box = document.getElementById('sp-search-results');
+    if (!q) {
+      box.innerHTML = '';
+      return;
+    }
+    box.innerHTML = '<p class="muted">Cercant…</p>';
+    try {
+      const { results } = await api(`/api/spotify/search?q=${encodeURIComponent(q)}&type=${type}`);
+      renderSearchResults(box, results);
+    } catch (err) {
+      box.innerHTML = `<p class="error">${err.message}</p>`;
+    }
+  });
+
   // Refresc suau de la barra cada segon (interpolant entre sondejos)
   if (!progressTimer) {
     progressTimer = setInterval(updateProgressBar, 1000);
@@ -327,6 +357,67 @@ function buildSpotifyPlayer() {
       });
     })
     .catch(() => {});
+}
+
+function renderSearchResults(box, results) {
+  if (!results.length) {
+    box.innerHTML = '<p class="muted">Cap resultat.</p>';
+    return;
+  }
+  box.innerHTML = '';
+
+  const clear = document.createElement('button');
+  clear.type = 'button';
+  clear.className = 'btn-small search-clear';
+  clear.textContent = '✕ Neteja resultats';
+  clear.addEventListener('click', () => { box.innerHTML = ''; });
+  box.appendChild(clear);
+
+  results.forEach((r) => {
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'recent-row';
+    row.title = 'Reprodueix a Spotify';
+
+    if (r.image) {
+      const img = document.createElement('img');
+      img.className = 'recent-cover';
+      img.src = r.image;
+      img.alt = '';
+      row.appendChild(img);
+    }
+    const info = document.createElement('div');
+    info.className = 'device-info';
+    const name = document.createElement('div');
+    name.className = 'recent-name';
+    name.textContent = r.name;
+    const meta = document.createElement('div');
+    meta.className = 'device-meta';
+    meta.textContent = r.subtitle;
+    info.append(name, meta);
+    row.appendChild(info);
+
+    const playIcon = document.createElement('span');
+    playIcon.className = 'recent-play';
+    playIcon.textContent = '▶';
+    row.appendChild(playIcon);
+
+    row.addEventListener('click', async () => {
+      row.classList.add('recent-loading');
+      try {
+        // Les cançons es reprodueixen soles; àlbums/artistes/llistes com a context
+        const body = r.type === 'track' ? { trackUri: r.uri } : { contextUri: r.uri };
+        await api('/api/spotify/play', { method: 'POST', body: JSON.stringify(body) });
+        setTimeout(loadSpotify, 600);
+      } catch (err) {
+        alert(`No s'ha pogut reproduir: ${err.message}`);
+      } finally {
+        row.classList.remove('recent-loading');
+      }
+    });
+
+    box.appendChild(row);
+  });
 }
 
 // --- Lletra (modal amb sincronització estil karaoke) ---

@@ -160,6 +160,20 @@ router.post('/seek', async (req, res) => {
   }
 });
 
+// GET /api/spotify/search?q=...&type=track|album|artist|playlist
+router.get('/search', async (req, res) => {
+  try {
+    const { q, type } = req.query;
+    if (!q || !q.trim()) {
+      return res.status(400).json({ ok: false, error: 'Falta el paràmetre "q"' });
+    }
+    const results = await spotify.search(q.trim(), type || 'track', 10);
+    res.json({ ok: true, results });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+});
+
 // GET /api/spotify/lyrics?track=...&artist=...&album=...&duration=180
 router.get('/lyrics', async (req, res) => {
   try {
