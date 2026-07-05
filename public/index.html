@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Centre de Control</title>
+  <meta name="theme-color" content="#0f172a">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>⌂ Centre de Control</h1>
+    <button id="logout-btn" class="btn-ghost" title="Tanca la sessió">Surt</button>
+  </header>
+
+  <main class="dashboard">
+    <!-- MEROSS -->
+    <section class="card" id="meross-card">
+      <div class="card-header">
+        <h2>🔌 Endolls</h2>
+        <span class="badge" id="meross-badge">…</span>
+      </div>
+      <div id="meross-devices" class="device-list">
+        <p class="muted">Carregant dispositius…</p>
+      </div>
+    </section>
+
+    <!-- SPOTIFY -->
+    <section class="card" id="spotify-card">
+      <div class="card-header">
+        <h2>🎵 Spotify</h2>
+        <span class="badge" id="spotify-badge">…</span>
+      </div>
+      <div id="spotify-body">
+        <p class="muted">Carregant…</p>
+      </div>
+    </section>
+
+    <!-- DISCORD -->
+    <section class="card" id="discord-card">
+      <div class="card-header">
+        <h2>💬 Discord</h2>
+        <span class="badge" id="discord-badge">…</span>
+      </div>
+      <div id="discord-body">
+        <p class="muted">Carregant…</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
