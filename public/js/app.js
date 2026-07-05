@@ -131,6 +131,25 @@ let spotifyUiBuilt = false;
 let currentTrack = null;
 // Última posició coneguda de reproducció; entre sondejos s'interpola amb el rellotge local
 let playbackPos = { progressMs: 0, at: 0, playing: false };
+let seekDragging = false;
+let progressTimer = null;
+
+function fmtTime(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function updateProgressBar() {
+  if (seekDragging || !currentTrack || !currentTrack.durationMs) return;
+  const bar = document.getElementById('sp-seek');
+  if (!bar) return;
+  const pos = Math.min(currentPositionMs(), currentTrack.durationMs);
+  bar.value = Math.round((pos / currentTrack.durationMs) * 1000);
+  document.getElementById('sp-time-cur').textContent = fmtTime(pos);
+  document.getElementById('sp-time-tot').textContent = fmtTime(currentTrack.durationMs);
+}
 
 function buildSpotifyPlayer() {
   spotifyBody.innerHTML = `
@@ -140,6 +159,11 @@ function buildSpotifyPlayer() {
         <div id="sp-title" class="device-name">—</div>
         <div id="sp-artist" class="device-meta">Res sonant</div>
       </div>
+    </div>
+    <div class="player-progress">
+      <span id="sp-time-cur" class="player-time">0:00</span>
+      <input type="range" id="sp-seek" min="0" max="1000" value="0" step="1" aria-label="Posició de la cançó">
+      <span id="sp-time-tot" class="player-time">0:00</span>
     </div>
     <div class="player-controls">
       <button id="sp-prev" class="btn-round" title="Anterior">⏮</button>
@@ -186,6 +210,39 @@ function buildSpotifyPlayer() {
     }
   });
   document.getElementById('sp-lyrics').addEventListener('click', openLyrics);
+
+  // Barra de progrés: arrossega per moure't dins de la cançó
+  const seekBar = document.getElementById('sp-seek');
+  seekBar.addEventListener('input', () => {
+    seekDragging = true;
+    if (currentTrack && currentTrack.durationMs) {
+      document.getElementById('sp-time-cur').textContent =
+        fmtTime((seekBar.value / 1000) * currentTrack.durationMs);
+    }
+  });
+  seekBar.addEventListener('change', async () => {
+    if (!currentTrack || !currentTrack.durationMs) {
+      seekDragging = false;
+      return;
+    }
+    const positionMs = Math.round((seekBar.value / 1000) * currentTrack.durationMs);
+    try {
+      await api('/api/spotify/seek', {
+        method: 'POST',
+        body: JSON.stringify({ positionMs }),
+      });
+      playbackPos = { progressMs: positionMs, at: Date.now(), playing: playbackPos.playing };
+    } catch (err) {
+      showErr(err.message);
+    } finally {
+      seekDragging = false;
+    }
+  });
+
+  // Refresc suau de la barra cada segon (interpolant entre sondejos)
+  if (!progressTimer) {
+    progressTimer = setInterval(updateProgressBar, 1000);
+  }
   document.getElementById('sp-play-playlist').addEventListener('click', async () => {
     const uri = document.getElementById('sp-playlist').value;
     if (!uri) return;
@@ -460,6 +517,7 @@ function updateSpotifyPlayer(np) {
     cover.classList.add('hidden');
   }
   btn.textContent = np.playing ? '⏸' : '▶';
+  updateProgressBar();
 }
 
 async function loadSpotify() {

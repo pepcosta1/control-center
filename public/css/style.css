@@ -226,6 +226,30 @@ body {
 
 .player-track { min-width: 0; }
 
+.player-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.player-time {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  min-width: 2.4em;
+  text-align: center;
+}
+
+#sp-seek {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+  height: 6px;
+  cursor: pointer;
+}
+
 .player-controls {
   display: flex;
   align-items: center;
