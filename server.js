@@ -5,7 +5,7 @@ const express = require('express');
 const session = require('express-session');
 
 const config = require('./src/config');
-const { requireAuth } = require('./src/middleware/auth');
+const { requireAuth, blockRestricted } = require('./src/middleware/auth');
 const merossService = require('./src/services/merossService');
 
 const app = express();
@@ -34,8 +34,8 @@ app.use(
 // --- API ---
 app.use('/api/auth', require('./src/routes/auth'));
 app.use('/api/meross', requireAuth, require('./src/routes/meross'));
-app.use('/api/spotify', requireAuth, require('./src/routes/spotify'));
-app.use('/api/discord', requireAuth, require('./src/routes/discord'));
+app.use('/api/spotify', requireAuth, blockRestricted, require('./src/routes/spotify'));
+app.use('/api/discord', requireAuth, blockRestricted, require('./src/routes/discord'));
 app.use('/api/shopping', requireAuth, require('./src/routes/shopping'));
 
 // 404 JSON per a rutes /api desconegudes

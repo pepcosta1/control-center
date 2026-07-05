@@ -772,22 +772,37 @@ async function loadDiscord() {
 // =====================================================================
 // Arrencada i sondeig
 // =====================================================================
+let restrictedMode = false;
+
 function loadAll() {
   loadMeross();
-  loadSpotify();
-  loadDiscord();
   loadShopping();
+  if (!restrictedMode) {
+    loadSpotify();
+    loadDiscord();
+  }
 }
 
 async function start() {
+  let me;
   try {
-    await api('/api/auth/me');
+    me = await api('/api/auth/me');
   } catch (e) {
     return; // api() ja redirigeix al login
   }
+
+  restrictedMode = !!me.restricted;
+  if (restrictedMode) {
+    // Mode limitat: només endolls i llista de la compra
+    document.getElementById('spotify-card').classList.add('hidden');
+    document.getElementById('discord-card').classList.add('hidden');
+  }
+
   loadAll();
   pollTimer = setInterval(loadAll, POLL_MS);
-  setInterval(loadRecent, 60000); // l'historial es refresca cada minut
+  if (!restrictedMode) {
+    setInterval(loadRecent, 60000); // l'historial es refresca cada minut
+  }
 }
 
 // Atura el sondeig quan l'app és en segon pla (estalvia bateria a l'iPhone)

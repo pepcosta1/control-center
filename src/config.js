@@ -10,6 +10,11 @@ const config = {
     user: process.env.ADMIN_USER || 'admin',
     passwordHash: process.env.ADMIN_PASSWORD_HASH || '',
   },
+  // IPs (de Tailscale o locals) amb accés limitat: només endolls i llista de la compra
+  restrictedIps: (process.env.RESTRICTED_IPS || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
   meross: {
     email: process.env.MEROSS_EMAIL || '',
     password: process.env.MEROSS_PASSWORD || '',

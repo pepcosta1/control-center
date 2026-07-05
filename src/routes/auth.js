@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const config = require('../config');
+const { isRestricted } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -70,7 +71,7 @@ router.post('/logout', (req, res) => {
 // GET /api/auth/me
 router.get('/me', (req, res) => {
   if (req.session && req.session.user) {
-    return res.json({ ok: true, user: req.session.user });
+    return res.json({ ok: true, user: req.session.user, restricted: isRestricted(req) });
   }
   res.status(401).json({ ok: false, error: 'No autenticat' });
 });
