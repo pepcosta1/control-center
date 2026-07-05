@@ -132,6 +132,7 @@ async function nowPlaying() {
     playing: !!d.is_playing,
     progressMs: d.progress_ms,
     device: d.device ? d.device.name : null,
+    volumePercent: d.device ? d.device.volume_percent : null,
     track: {
       name: d.item.name,
       artists: (d.item.artists || []).map((a) => a.name).join(', '),
@@ -155,6 +156,26 @@ async function playTrack(trackUri) {
 
 async function seek(positionMs) {
   await api('PUT', `/me/player/seek?position_ms=${Math.max(0, Math.round(positionMs))}`);
+}
+
+async function setVolume(percent) {
+  const vol = Math.min(100, Math.max(0, Math.round(percent)));
+  await api('PUT', `/me/player/volume?volume_percent=${vol}`);
+}
+
+async function devices() {
+  const d = await api('GET', '/me/player/devices');
+  return (d.devices || []).map((dev) => ({
+    id: dev.id,
+    name: dev.name,
+    type: dev.type,
+    active: !!dev.is_active,
+    volumePercent: dev.volume_percent,
+  }));
+}
+
+async function transferPlayback(deviceId) {
+  await api('PUT', '/me/player', { device_ids: [deviceId], play: true });
 }
 
 async function pause() {
@@ -208,4 +229,7 @@ module.exports = {
   recentlyPlayed,
   playTrack,
   seek,
+  setVolume,
+  devices,
+  transferPlayback,
 };

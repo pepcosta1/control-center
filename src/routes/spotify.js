@@ -109,6 +109,43 @@ router.get('/recent', async (req, res) => {
   }
 });
 
+// POST /api/spotify/volume — body: { percent: 0-100 }
+router.post('/volume', async (req, res) => {
+  try {
+    const { percent } = req.body || {};
+    if (typeof percent !== 'number') {
+      return res.status(400).json({ ok: false, error: 'Falta el camp "percent" (0-100)' });
+    }
+    await spotify.setVolume(percent);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+});
+
+// GET /api/spotify/devices — dispositius Spotify disponibles
+router.get('/devices', async (req, res) => {
+  try {
+    res.json({ ok: true, devices: await spotify.devices() });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /api/spotify/transfer — body: { deviceId } — mou la reproducció a un altre dispositiu
+router.post('/transfer', async (req, res) => {
+  try {
+    const { deviceId } = req.body || {};
+    if (!deviceId) {
+      return res.status(400).json({ ok: false, error: 'Falta el camp "deviceId"' });
+    }
+    await spotify.transferPlayback(deviceId);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+});
+
 // POST /api/spotify/seek — body: { positionMs }
 router.post('/seek', async (req, res) => {
   try {

@@ -132,7 +132,26 @@ let currentTrack = null;
 // Última posició coneguda de reproducció; entre sondejos s'interpola amb el rellotge local
 let playbackPos = { progressMs: 0, at: 0, playing: false };
 let seekDragging = false;
+let volDragging = false;
 let progressTimer = null;
+
+async function refreshDevices() {
+  const sel = document.getElementById('sp-device');
+  if (!sel || document.activeElement === sel) return; // no toquis el desplegable mentre l'usuari el fa servir
+  try {
+    const { devices } = await api('/api/spotify/devices');
+    sel.innerHTML = '';
+    if (!devices.length) {
+      sel.appendChild(new Option('Cap dispositiu actiu', ''));
+      return;
+    }
+    devices.forEach((d) => {
+      const opt = new Option(`${d.active ? '▶ ' : ''}${d.name} (${d.type})`, d.id);
+      opt.selected = d.active;
+      sel.appendChild(opt);
+    });
+  } catch (err) { /* silenciós: es reintenta al següent sondeig */ }
+}
 
 function fmtTime(ms) {
   const total = Math.max(0, Math.floor(ms / 1000));
@@ -171,6 +190,16 @@ function buildSpotifyPlayer() {
       <button id="sp-next" class="btn-round" title="Següent">⏭</button>
     </div>
     <button id="sp-lyrics" class="btn-small btn-lyrics">🎤 Lletra</button>
+    <div class="player-volume">
+      <span class="vol-icon">🔉</span>
+      <input type="range" id="sp-volume" min="0" max="100" value="50" step="1" aria-label="Volum">
+      <span class="vol-icon">🔊</span>
+    </div>
+    <div class="player-devices">
+      <select id="sp-device" aria-label="Dispositiu de reproducció">
+        <option value="">Dispositius…</option>
+      </select>
+    </div>
     <div class="player-playlists">
       <select id="sp-playlist"><option value="">Les meves playlists…</option></select>
       <button id="sp-play-playlist" class="btn-small">Reprodueix</button>
@@ -236,6 +265,38 @@ function buildSpotifyPlayer() {
       showErr(err.message);
     } finally {
       seekDragging = false;
+    }
+  });
+
+  // Volum
+  const volBar = document.getElementById('sp-volume');
+  volBar.addEventListener('input', () => { volDragging = true; });
+  volBar.addEventListener('change', async () => {
+    try {
+      await api('/api/spotify/volume', {
+        method: 'POST',
+        body: JSON.stringify({ percent: Number(volBar.value) }),
+      });
+    } catch (err) {
+      showErr(err.message); // alguns dispositius (p. ex. iPhone) no accepten volum remot
+    } finally {
+      volDragging = false;
+    }
+  });
+
+  // Selector de dispositiu
+  const deviceSel = document.getElementById('sp-device');
+  deviceSel.addEventListener('change', async () => {
+    const id = deviceSel.value;
+    if (!id) return;
+    try {
+      await api('/api/spotify/transfer', {
+        method: 'POST',
+        body: JSON.stringify({ deviceId: id }),
+      });
+      setTimeout(loadSpotify, 800);
+    } catch (err) {
+      showErr(err.message);
     }
   });
 
@@ -431,7 +492,7 @@ async function loadRecent() {
   const box = document.getElementById('sp-recent');
   if (!box) return;
   try {
-    const { tracks } = await api('/api/spotify/recent?limit=20');
+    const { tracks } = await api('/api/spotify/recent?limit=50');
     if (!tracks.length) {
       box.innerHTML = '<p class="muted">Encara no hi ha historial.</p>';
       return;
@@ -518,6 +579,11 @@ function updateSpotifyPlayer(np) {
   }
   btn.textContent = np.playing ? '⏸' : '▶';
   updateProgressBar();
+
+  const volBar = document.getElementById('sp-volume');
+  if (volBar && !volDragging && typeof np.volumePercent === 'number') {
+    volBar.value = np.volumePercent;
+  }
 }
 
 async function loadSpotify() {
@@ -542,6 +608,7 @@ async function loadSpotify() {
     if (firstBuild) buildSpotifyPlayer();
     const np = await api('/api/spotify/now-playing');
     updateSpotifyPlayer(np);
+    refreshDevices();
     if (firstBuild) loadRecent();
   } catch (err) {
     // 409 = cap dispositiu actiu: no és un error greu, mostrem-ho com a estat

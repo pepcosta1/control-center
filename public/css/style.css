@@ -278,6 +278,35 @@ body {
   border: none;
 }
 
+.player-volume {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.vol-icon { font-size: 0.85rem; flex-shrink: 0; }
+
+#sp-volume {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--success);
+  height: 6px;
+  cursor: pointer;
+}
+
+.player-devices { margin-bottom: 0.75rem; }
+
+.player-devices select {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+}
+
 .player-playlists {
   display: flex;
   gap: 0.5rem;
