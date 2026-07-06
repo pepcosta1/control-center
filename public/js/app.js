@@ -1230,6 +1230,11 @@ const TABS = {
   discord: { load: loadDiscord, adminOnly: true },
 };
 
+function setDrawer(open) {
+  document.getElementById('drawer').classList.toggle('open', open);
+  document.getElementById('drawer-overlay').classList.toggle('open', open);
+}
+
 function showTab(id) {
   if (!TABS[id]) return;
   activeTab = id;
@@ -1238,12 +1243,13 @@ function showTab(id) {
   document.querySelectorAll('.page').forEach((p) => {
     p.classList.toggle('active', p.id === `page-${id}`);
   });
-  document.querySelectorAll('.tab-btn').forEach((b) => {
+  document.querySelectorAll('.drawer-item').forEach((b) => {
     b.classList.toggle('active', b.dataset.tab === id);
   });
 
-  const btn = document.querySelector(`.tab-btn[data-tab="${id}"]`);
+  const btn = document.querySelector(`.drawer-item[data-tab="${id}"]`);
   document.getElementById('topbar-title').textContent = btn ? btn.dataset.title : 'Centre de Control';
+  setDrawer(false); // tanca el menú en triar una vista
   window.scrollTo(0, 0);
   TABS[id].load();
 }
@@ -1265,12 +1271,12 @@ async function start() {
 
   restrictedMode = !!me.restricted;
   if (restrictedMode) {
-    // Mode limitat: treu les pestanyes no permeses i el botó de sortir
+    // Mode limitat: treu les vistes no permeses i el botó de sortir
     document.getElementById('logout-btn').classList.add('hidden');
     Object.keys(TABS).forEach((id) => {
       if (TABS[id].adminOnly) {
         const page = document.getElementById(`page-${id}`);
-        const btn = document.querySelector(`.tab-btn[data-tab="${id}"]`);
+        const btn = document.querySelector(`.drawer-item[data-tab="${id}"]`);
         if (page) page.remove();
         if (btn) btn.remove();
         delete TABS[id];
@@ -1278,9 +1284,16 @@ async function start() {
     });
   }
 
-  document.querySelectorAll('.tab-btn').forEach((btn) => {
+  document.querySelectorAll('.drawer-item').forEach((btn) => {
     btn.addEventListener('click', () => showTab(btn.dataset.tab));
   });
+
+  // Obrir/tancar el menú lateral
+  document.getElementById('menu-btn').addEventListener('click', () => {
+    const open = document.getElementById('drawer').classList.contains('open');
+    setDrawer(!open);
+  });
+  document.getElementById('drawer-overlay').addEventListener('click', () => setDrawer(false));
 
   showTab('meross');
   pollTimer = setInterval(pollActive, POLL_MS);

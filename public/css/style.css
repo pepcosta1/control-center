@@ -110,56 +110,102 @@ body {
   padding: 1rem;
   max-width: 640px;
   margin: 0 auto;
-  /* espai perquè la barra inferior no tapi el contingut */
-  padding-bottom: calc(72px + env(safe-area-inset-bottom) + 1rem);
 }
 
 /* Pàgines: només se'n mostra una alhora */
 .page { display: none; }
 .page.active { display: block; }
 
-/* Barra de navegació inferior (estil app) */
-.tabbar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid var(--border);
-  padding-bottom: env(safe-area-inset-bottom);
-  z-index: 20;
-}
-
-.tab-btn {
-  flex: 1;
-  min-width: 0;
+/* Botó de menú (tres barres) */
+.menu-btn {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 2px;
+  justify-content: center;
+  gap: 4px;
+  width: 40px;
+  height: 40px;
+  padding: 0 8px;
   background: transparent;
   border: none;
-  color: var(--muted);
-  padding: 0.5rem 0.15rem 0.55rem;
   cursor: pointer;
-  transition: color 0.15s;
+  flex-shrink: 0;
 }
 
-.tab-icon { font-size: 1.25rem; line-height: 1; filter: grayscale(0.4); }
+.menu-btn span {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--text);
+}
 
-.tab-label {
-  font-size: 0.62rem;
+.topbar h1 {
+  flex: 1;
+  text-align: left;
+  margin-left: 0.25rem;
+}
+
+/* Menú lateral (drawer) */
+.drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 250px;
+  max-width: 80vw;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  z-index: 40;
+  transform: translateX(-100%);
+  transition: transform 0.22s ease;
+  padding-top: calc(env(safe-area-inset-top) + 0.5rem);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.drawer.open { transform: translateX(0); }
+
+.drawer-head {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 0.9rem 1.25rem 0.6rem;
+}
+
+.drawer-item {
+  background: transparent;
+  border: none;
+  border-left: 3px solid transparent;
+  color: var(--text);
+  text-align: left;
+  font-size: 1rem;
+  padding: 0.85rem 1.25rem;
+  cursor: pointer;
+  width: 100%;
+}
+
+.drawer-item:hover { background: var(--card-hover); }
+
+.drawer-item.active {
+  border-left-color: var(--accent);
+  color: var(--accent);
   font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+  background: var(--bg);
 }
 
-.tab-btn.active { color: var(--accent); }
-.tab-btn.active .tab-icon { filter: none; transform: scale(1.05); }
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 30;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+
+.drawer-overlay.open { opacity: 1; pointer-events: auto; }
 
 .card {
   background: var(--card);

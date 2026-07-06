@@ -13,16 +13,31 @@
 </head>
 <body>
   <header class="topbar">
+    <button id="menu-btn" class="menu-btn" aria-label="Menú">
+      <span></span><span></span><span></span>
+    </button>
     <h1 id="topbar-title">Centre de Control</h1>
     <button id="logout-btn" class="btn-ghost" title="Tanca la sessió">Surt</button>
   </header>
+
+  <div class="drawer-overlay" id="drawer-overlay"></div>
+  <nav class="drawer" id="drawer">
+    <div class="drawer-head">Vistes</div>
+    <button class="drawer-item" data-tab="meross" data-title="Endolls">Endolls</button>
+    <button class="drawer-item" data-tab="tuya" data-title="Calefacció">Calefacció</button>
+    <button class="drawer-item" data-tab="roomba" data-title="Roomba">Roomba</button>
+    <button class="drawer-item" data-tab="spotify" data-title="Spotify">Spotify</button>
+    <button class="drawer-item" data-tab="shopping" data-title="Llista de la compra">Llista de la compra</button>
+    <button class="drawer-item" data-tab="deco" data-title="Xarxa">Xarxa</button>
+    <button class="drawer-item" data-tab="discord" data-title="Discord">Discord</button>
+  </nav>
 
   <main class="dashboard">
     <!-- MEROSS -->
     <div class="page" id="page-meross">
       <section class="card" id="meross-card">
         <div class="card-header">
-          <h2>🔌 Endolls</h2>
+          <h2>Endolls</h2>
           <span class="badge" id="meross-badge">…</span>
         </div>
         <div id="meross-devices" class="device-list">
@@ -35,7 +50,7 @@
     <div class="page" id="page-tuya">
       <section class="card" id="tuya-card">
         <div class="card-header">
-          <h2>🔥 Calefacció</h2>
+          <h2>Calefacció</h2>
           <span class="badge" id="tuya-badge">…</span>
         </div>
         <div id="tuya-body">
@@ -48,7 +63,7 @@
     <div class="page" id="page-roomba">
       <section class="card" id="roomba-card">
         <div class="card-header">
-          <h2>🤖 Roomba</h2>
+          <h2>Roomba</h2>
           <span class="badge" id="roomba-badge">…</span>
         </div>
         <div id="roomba-body">
@@ -61,7 +76,7 @@
     <div class="page" id="page-spotify">
       <section class="card" id="spotify-card">
         <div class="card-header">
-          <h2>🎵 Spotify</h2>
+          <h2>Spotify</h2>
           <span class="badge" id="spotify-badge">…</span>
         </div>
         <div id="spotify-body">
@@ -74,7 +89,7 @@
     <div class="page" id="page-shopping">
       <section class="card" id="shopping-card">
         <div class="card-header">
-          <h2>🛒 Llista de la compra</h2>
+          <h2>Llista de la compra</h2>
           <button id="shop-clear" class="btn-small hidden">Neteja comprats</button>
         </div>
         <form id="shop-form" class="shop-form">
@@ -91,7 +106,7 @@
     <div class="page" id="page-deco">
       <section class="card" id="deco-card">
         <div class="card-header">
-          <h2>📶 Xarxa</h2>
+          <h2>Xarxa</h2>
           <span class="badge" id="deco-badge">…</span>
         </div>
         <div id="deco-body">
@@ -104,7 +119,7 @@
     <div class="page" id="page-discord">
       <section class="card" id="discord-card">
         <div class="card-header">
-          <h2>💬 Discord</h2>
+          <h2>Discord</h2>
           <span class="badge" id="discord-badge">…</span>
         </div>
         <div id="discord-body">
@@ -113,16 +128,6 @@
       </section>
     </div>
   </main>
-
-  <nav class="tabbar" id="tabbar">
-    <button class="tab-btn" data-tab="meross" data-title="Endolls"><span class="tab-icon">🔌</span><span class="tab-label">Endolls</span></button>
-    <button class="tab-btn" data-tab="tuya" data-title="Calefacció"><span class="tab-icon">🔥</span><span class="tab-label">Calor</span></button>
-    <button class="tab-btn" data-tab="roomba" data-title="Roomba"><span class="tab-icon">🤖</span><span class="tab-label">Roomba</span></button>
-    <button class="tab-btn" data-tab="spotify" data-title="Spotify"><span class="tab-icon">🎵</span><span class="tab-label">Música</span></button>
-    <button class="tab-btn" data-tab="shopping" data-title="Llista de la compra"><span class="tab-icon">🛒</span><span class="tab-label">Compra</span></button>
-    <button class="tab-btn" data-tab="deco" data-title="Xarxa"><span class="tab-icon">📶</span><span class="tab-label">Xarxa</span></button>
-    <button class="tab-btn" data-tab="discord" data-title="Discord"><span class="tab-icon">💬</span><span class="tab-label">Discord</span></button>
-  </nav>
 
   <script src="/js/app.js"></script>
 </body>
