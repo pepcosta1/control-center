@@ -34,6 +34,11 @@ const config = {
     deviceId: process.env.TUYA_DEVICE_ID_TERMOSTAT || '',
     region: (process.env.TUYA_REGION || 'eu').toLowerCase(),
   },
+  roomba: {
+    ip: process.env.ROOMBA_IP || '',
+    blid: process.env.ROOMBA_BLID || '',
+    password: process.env.ROOMBA_PASSWORD || '',
+  },
   deco: {
     host: process.env.DECO_HOST || '',
     username: process.env.DECO_USERNAME || 'admin',

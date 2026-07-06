@@ -246,6 +246,79 @@ function updateTuyaUi(t) {
   if (tuyaPendingTemp === null) renderTuyaTarget(t.targetTemp, false);
 }
 
+// =====================================================================
+// ROOMBA
+// =====================================================================
+const roombaBadge = document.getElementById('roomba-badge');
+const roombaBody = document.getElementById('roomba-body');
+let roombaUiBuilt = false;
+
+function buildRoombaUi() {
+  roombaBody.innerHTML = `
+    <div class="device-row">
+      <div class="device-info">
+        <div class="device-name" id="rb-name">Roomba</div>
+        <div class="device-meta" id="rb-meta">—</div>
+      </div>
+      <div class="rb-batt" id="rb-batt">—</div>
+    </div>
+    <div class="rb-controls">
+      <button id="rb-start" class="btn-small">▶ Neteja</button>
+      <button id="rb-pause" class="btn-small">⏸ Pausa</button>
+      <button id="rb-dock" class="btn-small">🏠 A la base</button>
+    </div>
+    <p id="rb-error" class="error hidden"></p>
+  `;
+  roombaUiBuilt = true;
+
+  const showErr = (msg) => {
+    const el = document.getElementById('rb-error');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+    setTimeout(() => el.classList.add('hidden'), 5000);
+  };
+
+  const cmd = (action) => async (e) => {
+    e.target.disabled = true;
+    try {
+      await api(`/api/roomba/${action}`, { method: 'POST' });
+      setTimeout(loadRoomba, 1500); // dona temps al robot a canviar d'estat
+    } catch (err) {
+      showErr(err.message);
+    } finally {
+      e.target.disabled = false;
+    }
+  };
+
+  document.getElementById('rb-start').addEventListener('click', cmd('start'));
+  document.getElementById('rb-pause').addEventListener('click', cmd('pause'));
+  document.getElementById('rb-dock').addEventListener('click', cmd('dock'));
+}
+
+async function loadRoomba() {
+  try {
+    const data = await api('/api/roomba/status');
+    if (data.status === 'unconfigured') {
+      setBadge(roombaBadge, 'no configurat', 'badge-muted');
+      roombaBody.innerHTML = '<p class="muted">Afegeix ROOMBA_IP, ROOMBA_BLID i ROOMBA_PASSWORD al .env del servidor.</p>';
+      roombaUiBuilt = false;
+      return;
+    }
+    const r = data.roomba;
+    setBadge(roombaBadge, r.cleaning ? 'netejant' : 'connectat', 'badge-ok');
+    if (!roombaUiBuilt) buildRoombaUi();
+    document.getElementById('rb-name').textContent = r.name;
+    document.getElementById('rb-meta').textContent =
+      r.phaseLabel + (r.binFull ? ' · dipòsit ple!' : '');
+    document.getElementById('rb-batt').textContent =
+      r.batteryPct !== null ? `🔋 ${r.batteryPct}%` : '';
+  } catch (err) {
+    setBadge(roombaBadge, 'fora de línia', 'badge-err');
+    roombaBody.innerHTML = `<p class="muted">${err.message}</p>`;
+    roombaUiBuilt = false;
+  }
+}
+
 async function loadTuya() {
   try {
     const data = await api('/api/tuya/status');
@@ -1146,6 +1219,7 @@ let restrictedMode = false;
 function loadAll() {
   loadMeross();
   loadTuya();
+  loadRoomba();
   loadShopping();
   if (!restrictedMode) {
     loadSpotify();
