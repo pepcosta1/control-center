@@ -34,9 +34,11 @@ app.use(
 // --- API ---
 app.use('/api/auth', require('./src/routes/auth'));
 app.use('/api/meross', requireAuth, require('./src/routes/meross'));
+app.use('/api/tuya', requireAuth, require('./src/routes/tuya'));
 app.use('/api/spotify', requireAuth, blockRestricted, require('./src/routes/spotify'));
 app.use('/api/discord', requireAuth, blockRestricted, require('./src/routes/discord'));
 app.use('/api/shopping', requireAuth, require('./src/routes/shopping'));
+app.use('/api/deco', requireAuth, blockRestricted, require('./src/routes/deco'));
 
 // 404 JSON per a rutes /api desconegudes
 app.use('/api', (req, res) => {

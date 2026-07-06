@@ -34,6 +34,8 @@ La VM **no** té el repo git: s'actualitza per scp. El `.env` de la VM és la fo
 - **Lletres**: LRCLIB (lrclib.net), gratuït i sense clau; mode karaoke amb format LRC.
 - **Meross**: `meross-cloud` (npm audit avisa per `request`; sense fix, acceptat). 2 endolls mss710.
 - **Discord**: bot connectat però el canal configurat dona "Unknown Channel" (pendent que l'usuari convidi el bot al servidor o corregeixi DISCORD_CHANNEL_ID).
+- **Tuya (termòstat Garza)**: Tuya Cloud API (data center EU) amb signatura HMAC-SHA256 i token que es renova sol; sense dependència npm. Variables: TUYA_ACCESS_ID, TUYA_ACCESS_SECRET, TUYA_DEVICE_ID_TERMOSTAT, TUYA_REGION. Accessible també per a les IPs restringides (com els endolls). L'escala de temperatura es llegeix de l'especificació del dispositiu (fallback heurístic ×10).
+- **TP-Link Deco (xarxa)**: API local NO oficial (port d'amosyuen/ha-tplink-deco, sense dependència npm; pot trencar-se amb firmware nou). NOMÉS lectura: nodes, clients i presència (DECO_PRESENCE_MAC). Variables: DECO_HOST, DECO_USERNAME, DECO_PASSWORD, DECO_PRESENCE_MAC. DECO_HOST ha de ser accessible des d'on corre el backend (API local del Deco; previst backend a servidor de casa). Bloquejat per a IPs restringides (presència/inventari = sensible).
 - **Cookies de sessió**: en producció són `secure` → les proves amb curl a la VM s'han de fer contra la URL https de Tailscale, no contra http://127.0.0.1.
 
 ## En local (desenvolupament)

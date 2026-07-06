@@ -122,6 +122,151 @@ async function loadMeross() {
 }
 
 // =====================================================================
+// TUYA / CALEFACCIÓ
+// =====================================================================
+const tuyaBadge = document.getElementById('tuya-badge');
+const tuyaBody = document.getElementById('tuya-body');
+let tuyaUiBuilt = false;
+let tuyaLastTarget = null;   // últim objectiu confirmat pel servidor
+let tuyaPendingTemp = null;  // objectiu triat per l'usuari, pendent d'enviar
+let tuyaSendTimer = null;
+let tuyaLimits = { min: 5, max: 35, step: 0.5 };
+
+function fmtTemp(t) {
+  if (typeof t !== 'number') return '—';
+  return `${t % 1 ? t.toFixed(1) : t} °C`;
+}
+
+function showTuyaErr(msg) {
+  const el = document.getElementById('tuya-error');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 5000);
+}
+
+function renderTuyaTarget(temp, pending) {
+  const el = document.getElementById('tuya-target');
+  if (!el) return;
+  el.textContent = fmtTemp(temp);
+  el.classList.toggle('pending', !!pending);
+}
+
+// Cada toc de +/- ajusta l'objectiu en local; s'envia quan l'usuari para (debounce)
+function nudgeTuyaTemp(direction) {
+  const base = tuyaPendingTemp !== null ? tuyaPendingTemp : tuyaLastTarget;
+  if (base === null) return;
+  const next = Math.round((base + direction * tuyaLimits.step) * 10) / 10;
+  tuyaPendingTemp = Math.min(tuyaLimits.max, Math.max(tuyaLimits.min, next));
+  renderTuyaTarget(tuyaPendingTemp, true);
+  clearTimeout(tuyaSendTimer);
+  tuyaSendTimer = setTimeout(sendTuyaTemp, 900);
+}
+
+async function sendTuyaTemp() {
+  const temp = tuyaPendingTemp;
+  if (temp === null) return;
+  try {
+    await api('/api/tuya/temperature', {
+      method: 'POST',
+      body: JSON.stringify({ temperature: temp }),
+    });
+    tuyaLastTarget = temp;
+    renderTuyaTarget(temp, false);
+  } catch (err) {
+    showTuyaErr(`No s'ha pogut canviar la temperatura: ${err.message}`);
+    renderTuyaTarget(tuyaLastTarget, false);
+  } finally {
+    tuyaPendingTemp = null;
+  }
+}
+
+function buildTuyaUi() {
+  tuyaBody.innerHTML = `
+    <div class="device-row">
+      <div class="device-info">
+        <div class="device-name" id="tuya-name">Termòstat</div>
+        <div class="device-meta" id="tuya-meta">—</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="tuya-power">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="thermo" id="tuya-thermo">
+      <button id="tuya-temp-down" class="btn-round" title="Baixa la temperatura">−</button>
+      <div class="thermo-display">
+        <div class="thermo-target" id="tuya-target">—</div>
+        <div class="device-meta">objectiu · ara <span id="tuya-current">—</span></div>
+      </div>
+      <button id="tuya-temp-up" class="btn-round" title="Puja la temperatura">＋</button>
+    </div>
+    <p id="tuya-error" class="error hidden"></p>
+  `;
+  tuyaUiBuilt = true;
+
+  const power = document.getElementById('tuya-power');
+  power.addEventListener('change', async () => {
+    const wanted = power.checked;
+    power.disabled = true;
+    try {
+      await api('/api/tuya/power', {
+        method: 'POST',
+        body: JSON.stringify({ on: wanted }),
+      });
+      setTimeout(loadTuya, 800); // dona temps al dispositiu a aplicar el canvi
+    } catch (err) {
+      power.checked = !wanted; // reverteix si ha fallat
+      showTuyaErr(`No s'ha pogut canviar l'estat: ${err.message}`);
+    } finally {
+      power.disabled = false;
+    }
+  });
+
+  document.getElementById('tuya-temp-down').addEventListener('click', () => nudgeTuyaTemp(-1));
+  document.getElementById('tuya-temp-up').addEventListener('click', () => nudgeTuyaTemp(1));
+}
+
+function updateTuyaUi(t) {
+  tuyaLimits = { min: t.minTemp, max: t.maxTemp, step: t.step || 0.5 };
+  document.getElementById('tuya-name').textContent = t.name;
+  const metaParts = [];
+  if (t.mode) metaParts.push(`mode ${t.mode}`);
+  if (!t.online) metaParts.push('fora de línia');
+  document.getElementById('tuya-meta').textContent = metaParts.join(' · ') || 'termòstat';
+  document.getElementById('tuya-current').textContent = fmtTemp(t.currentTemp);
+  document.getElementById('tuya-thermo').classList.toggle('thermo-off', t.on === false);
+
+  const power = document.getElementById('tuya-power');
+  if (!power.disabled) power.checked = t.on === true;
+  power.disabled = !t.online || t.on === null;
+
+  tuyaLastTarget = t.targetTemp;
+  // No trepitgis l'objectiu mentre l'usuari està tocant +/-
+  if (tuyaPendingTemp === null) renderTuyaTarget(t.targetTemp, false);
+}
+
+async function loadTuya() {
+  try {
+    const data = await api('/api/tuya/status');
+    if (data.status === 'unconfigured') {
+      setBadge(tuyaBadge, 'no configurat', 'badge-muted');
+      tuyaBody.innerHTML = '<p class="muted">Afegeix les credencials de Tuya al .env del servidor.</p>';
+      tuyaUiBuilt = false;
+      return;
+    }
+    const t = data.thermostat;
+    setBadge(tuyaBadge, t.online ? 'connectat' : 'fora de línia', t.online ? 'badge-ok' : 'badge-muted');
+    if (!tuyaUiBuilt) buildTuyaUi();
+    updateTuyaUi(t);
+  } catch (err) {
+    setBadge(tuyaBadge, 'error', 'badge-err');
+    tuyaBody.innerHTML = `<p class="error">${err.message}</p>`;
+    tuyaUiBuilt = false;
+  }
+}
+
+// =====================================================================
 // SPOTIFY
 // =====================================================================
 const spotifyBadge = document.getElementById('spotify-badge');
@@ -804,6 +949,139 @@ shopClear.addEventListener('click', async () => {
 });
 
 // =====================================================================
+// XARXA (TP-LINK DECO)
+// =====================================================================
+const decoBadge = document.getElementById('deco-badge');
+const decoBody = document.getElementById('deco-body');
+let decoUiBuilt = false;
+let decoPresenceConfigured = false;
+
+function buildDecoUi() {
+  decoBody.innerHTML = `
+    <div id="deco-presence" class="deco-presence hidden"></div>
+    <div id="deco-nodes" class="device-list"><p class="muted">Carregant nodes…</p></div>
+    <details class="recent-section" id="deco-devices-details">
+      <summary class="recent-title">Dispositius connectats ▾</summary>
+      <div id="deco-devices" class="recent-list"><p class="muted">—</p></div>
+    </details>
+  `;
+  decoUiBuilt = true;
+  document.getElementById('deco-devices-details').addEventListener('toggle', (e) => {
+    if (e.target.open) loadDecoDevices();
+  });
+}
+
+function renderDecoNodes(nodes) {
+  const box = document.getElementById('deco-nodes');
+  if (!nodes.length) {
+    box.innerHTML = '<p class="muted">No s\'ha trobat cap node Deco.</p>';
+    return;
+  }
+  box.innerHTML = '';
+  nodes.forEach((n) => {
+    const row = document.createElement('div');
+    row.className = 'device-row' + (n.online ? '' : ' device-offline');
+
+    const info = document.createElement('div');
+    info.className = 'device-info';
+    const name = document.createElement('div');
+    name.className = 'device-name';
+    name.textContent = n.name + (n.master ? ' ★' : '');
+    const meta = document.createElement('div');
+    meta.className = 'device-meta';
+    meta.textContent = [n.model, n.ip, n.online ? null : 'fora de línia'].filter(Boolean).join(' · ');
+    info.append(name, meta);
+
+    const dot = document.createElement('span');
+    dot.className = 'dot ' + (n.online ? 'dot-ok' : 'dot-err');
+    dot.title = n.online ? 'En línia' : 'Fora de línia';
+
+    row.append(info, dot);
+    box.appendChild(row);
+  });
+}
+
+async function loadDecoPresence() {
+  const el = document.getElementById('deco-presence');
+  if (!el || !decoPresenceConfigured) return;
+  try {
+    const p = await api('/api/deco/presence');
+    el.textContent = p.present ? '🏠 A casa' : '🚶 Fora';
+    el.className = 'deco-presence ' + (p.present ? 'presence-home' : 'presence-away');
+  } catch (err) {
+    el.classList.add('hidden');
+  }
+}
+
+async function loadDecoDevices() {
+  const box = document.getElementById('deco-devices');
+  const details = document.getElementById('deco-devices-details');
+  if (!box || !details || !details.open) return;
+  try {
+    const { devices } = await api('/api/deco/devices');
+    if (!devices.length) {
+      box.innerHTML = '<p class="muted">Cap dispositiu connectat.</p>';
+      return;
+    }
+    box.innerHTML = '';
+    devices
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+      .forEach((d) => {
+        const row = document.createElement('div');
+        row.className = 'recent-row deco-client';
+        const info = document.createElement('div');
+        info.className = 'device-info';
+        const name = document.createElement('div');
+        name.className = 'recent-name';
+        name.textContent = d.name;
+        const meta = document.createElement('div');
+        meta.className = 'device-meta';
+        const conn = d.connection === 'wired' ? 'cable' : d.connection;
+        meta.textContent = [d.ip, conn, d.node ? `via ${d.node}` : null].filter(Boolean).join(' · ');
+        info.append(name, meta);
+        row.appendChild(info);
+        box.appendChild(row);
+      });
+  } catch (err) {
+    box.innerHTML = `<p class="muted">${err.message}</p>`;
+  }
+}
+
+async function loadDeco() {
+  try {
+    const st = await api('/api/deco/status');
+    if (st.status === 'unconfigured') {
+      setBadge(decoBadge, 'no configurat', 'badge-muted');
+      decoBody.innerHTML = '<p class="muted">Afegeix DECO_HOST i DECO_PASSWORD al .env del servidor.</p>';
+      decoUiBuilt = false;
+      return;
+    }
+    decoPresenceConfigured = st.presenceConfigured;
+    if (!decoUiBuilt) buildDecoUi();
+
+    const { nodes } = await api('/api/deco/nodes');
+    const allOk = nodes.length > 0 && nodes.every((n) => n.online);
+    setBadge(decoBadge, allOk ? 'tot en línia' : 'atenció', allOk ? 'badge-ok' : 'badge-err');
+    renderDecoNodes(nodes);
+
+    const presenceEl = document.getElementById('deco-presence');
+    if (decoPresenceConfigured && presenceEl.classList.contains('hidden')) {
+      presenceEl.classList.remove('hidden');
+      presenceEl.textContent = '…';
+    }
+    loadDecoPresence();
+    loadDecoDevices(); // només refresca si el desplegable és obert
+  } catch (err) {
+    setBadge(decoBadge, 'error', 'badge-err');
+    if (decoUiBuilt) {
+      document.getElementById('deco-nodes').innerHTML = `<p class="error">${err.message}</p>`;
+    } else {
+      decoBody.innerHTML = `<p class="error">${err.message}</p>`;
+    }
+  }
+}
+
+// =====================================================================
 // DISCORD
 // =====================================================================
 const discordBadge = document.getElementById('discord-badge');
@@ -867,10 +1145,12 @@ let restrictedMode = false;
 
 function loadAll() {
   loadMeross();
+  loadTuya();
   loadShopping();
   if (!restrictedMode) {
     loadSpotify();
     loadDiscord();
+    loadDeco();
   }
 }
 
@@ -887,6 +1167,7 @@ async function start() {
     // Mode limitat: només endolls i llista de la compra, sense botó de sortir
     document.getElementById('spotify-card').classList.add('hidden');
     document.getElementById('discord-card').classList.add('hidden');
+    document.getElementById('deco-card').classList.add('hidden');
     document.getElementById('logout-btn').classList.add('hidden');
   }
 
