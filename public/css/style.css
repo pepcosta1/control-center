@@ -108,11 +108,58 @@ body {
 
 .dashboard {
   padding: 1rem;
-  display: grid;
-  gap: 1rem;
   max-width: 640px;
   margin: 0 auto;
+  /* espai perquè la barra inferior no tapi el contingut */
+  padding-bottom: calc(72px + env(safe-area-inset-bottom) + 1rem);
 }
+
+/* Pàgines: només se'n mostra una alhora */
+.page { display: none; }
+.page.active { display: block; }
+
+/* Barra de navegació inferior (estil app) */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 20;
+}
+
+.tab-btn {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  padding: 0.5rem 0.15rem 0.55rem;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.tab-icon { font-size: 1.25rem; line-height: 1; filter: grayscale(0.4); }
+
+.tab-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.tab-btn.active { color: var(--accent); }
+.tab-btn.active .tab-icon { filter: none; transform: scale(1.05); }
 
 .card {
   background: var(--card);

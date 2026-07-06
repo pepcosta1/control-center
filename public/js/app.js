@@ -1212,20 +1212,47 @@ async function loadDiscord() {
 }
 
 // =====================================================================
-// Arrencada i sondeig
+// Navegació per pestanyes + sondeig de la pestanya activa
 // =====================================================================
 let restrictedMode = false;
+let activeTab = null;
+let pollTick = 0;
 
-function loadAll() {
-  loadMeross();
-  loadTuya();
-  loadRoomba();
-  loadShopping();
-  if (!restrictedMode) {
-    loadSpotify();
-    loadDiscord();
-    loadDeco();
-  }
+// Cada pestanya carrega només les seves dades quan és visible.
+// adminOnly: no disponible per als dispositius amb accés limitat.
+const TABS = {
+  meross: { load: loadMeross },
+  tuya: { load: loadTuya },
+  roomba: { load: loadRoomba },
+  spotify: { load: loadSpotify, adminOnly: true },
+  shopping: { load: loadShopping },
+  deco: { load: loadDeco, adminOnly: true },
+  discord: { load: loadDiscord, adminOnly: true },
+};
+
+function showTab(id) {
+  if (!TABS[id]) return;
+  activeTab = id;
+  pollTick = 0;
+
+  document.querySelectorAll('.page').forEach((p) => {
+    p.classList.toggle('active', p.id === `page-${id}`);
+  });
+  document.querySelectorAll('.tab-btn').forEach((b) => {
+    b.classList.toggle('active', b.dataset.tab === id);
+  });
+
+  const btn = document.querySelector(`.tab-btn[data-tab="${id}"]`);
+  document.getElementById('topbar-title').textContent = btn ? btn.dataset.title : 'Centre de Control';
+  window.scrollTo(0, 0);
+  TABS[id].load();
+}
+
+// Sondeja només la pestanya oberta (estalvia bateria i, al Roomba, connexions al robot)
+function pollActive() {
+  if (!activeTab || !TABS[activeTab]) return;
+  TABS[activeTab].load();
+  if (activeTab === 'spotify' && (++pollTick % 6 === 0)) loadRecent(); // historial cada ~60 s
 }
 
 async function start() {
@@ -1238,18 +1265,25 @@ async function start() {
 
   restrictedMode = !!me.restricted;
   if (restrictedMode) {
-    // Mode limitat: només endolls i llista de la compra, sense botó de sortir
-    document.getElementById('spotify-card').classList.add('hidden');
-    document.getElementById('discord-card').classList.add('hidden');
-    document.getElementById('deco-card').classList.add('hidden');
+    // Mode limitat: treu les pestanyes no permeses i el botó de sortir
     document.getElementById('logout-btn').classList.add('hidden');
+    Object.keys(TABS).forEach((id) => {
+      if (TABS[id].adminOnly) {
+        const page = document.getElementById(`page-${id}`);
+        const btn = document.querySelector(`.tab-btn[data-tab="${id}"]`);
+        if (page) page.remove();
+        if (btn) btn.remove();
+        delete TABS[id];
+      }
+    });
   }
 
-  loadAll();
-  pollTimer = setInterval(loadAll, POLL_MS);
-  if (!restrictedMode) {
-    setInterval(loadRecent, 60000); // l'historial es refresca cada minut
-  }
+  document.querySelectorAll('.tab-btn').forEach((btn) => {
+    btn.addEventListener('click', () => showTab(btn.dataset.tab));
+  });
+
+  showTab('meross');
+  pollTimer = setInterval(pollActive, POLL_MS);
 }
 
 // Atura el sondeig quan l'app és en segon pla (estalvia bateria a l'iPhone)
@@ -1258,8 +1292,8 @@ document.addEventListener('visibilitychange', () => {
     clearInterval(pollTimer);
     pollTimer = null;
   } else if (!pollTimer) {
-    loadAll();
-    pollTimer = setInterval(loadAll, POLL_MS);
+    pollActive();
+    pollTimer = setInterval(pollActive, POLL_MS);
   }
 });
 
