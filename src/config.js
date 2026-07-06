@@ -28,6 +28,18 @@ const config = {
     botToken: process.env.DISCORD_BOT_TOKEN || '',
     channelId: process.env.DISCORD_CHANNEL_ID || '',
   },
+  tuya: {
+    accessId: process.env.TUYA_ACCESS_ID || '',
+    accessSecret: process.env.TUYA_ACCESS_SECRET || '',
+    deviceId: process.env.TUYA_DEVICE_ID_TERMOSTAT || '',
+    region: (process.env.TUYA_REGION || 'eu').toLowerCase(),
+  },
+  deco: {
+    host: process.env.DECO_HOST || '',
+    username: process.env.DECO_USERNAME || 'admin',
+    password: process.env.DECO_PASSWORD || '',
+    presenceMac: process.env.DECO_PRESENCE_MAC || '',
+  },
 };
 
 if (!config.sessionSecret) {
