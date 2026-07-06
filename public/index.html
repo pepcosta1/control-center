@@ -23,9 +23,8 @@
   <div class="drawer-overlay" id="drawer-overlay"></div>
   <nav class="drawer" id="drawer">
     <div class="drawer-head">Vistes</div>
-    <button class="drawer-item" data-tab="meross" data-title="Endolls">Endolls</button>
+    <button class="drawer-item" data-tab="devices" data-title="Dispositius">Dispositius</button>
     <button class="drawer-item" data-tab="tuya" data-title="Calefacció">Calefacció</button>
-    <button class="drawer-item" data-tab="roomba" data-title="Roomba">Roomba</button>
     <button class="drawer-item" data-tab="spotify" data-title="Spotify">Spotify</button>
     <button class="drawer-item" data-tab="shopping" data-title="Llista de la compra">Llista de la compra</button>
     <button class="drawer-item" data-tab="deco" data-title="Xarxa">Xarxa</button>
@@ -33,8 +32,8 @@
   </nav>
 
   <main class="dashboard">
-    <!-- MEROSS -->
-    <div class="page" id="page-meross">
+    <!-- DISPOSITIUS (endolls + roomba) -->
+    <div class="page" id="page-devices">
       <section class="card" id="meross-card">
         <div class="card-header">
           <h2>Endolls</h2>
@@ -42,6 +41,16 @@
         </div>
         <div id="meross-devices" class="device-list">
           <p class="muted">Carregant dispositius…</p>
+        </div>
+      </section>
+
+      <section class="card" id="roomba-card">
+        <div class="card-header">
+          <h2>Roomba</h2>
+          <span class="badge" id="roomba-badge">…</span>
+        </div>
+        <div id="roomba-body">
+          <p class="muted">Carregant…</p>
         </div>
       </section>
     </div>
@@ -54,19 +63,6 @@
           <span class="badge" id="tuya-badge">…</span>
         </div>
         <div id="tuya-body">
-          <p class="muted">Carregant…</p>
-        </div>
-      </section>
-    </div>
-
-    <!-- ROOMBA -->
-    <div class="page" id="page-roomba">
-      <section class="card" id="roomba-card">
-        <div class="card-header">
-          <h2>Roomba</h2>
-          <span class="badge" id="roomba-badge">…</span>
-        </div>
-        <div id="roomba-body">
           <p class="muted">Carregant…</p>
         </div>
       </section>

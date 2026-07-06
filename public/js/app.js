@@ -1220,10 +1220,14 @@ let pollTick = 0;
 
 // Cada pestanya carrega només les seves dades quan és visible.
 // adminOnly: no disponible per als dispositius amb accés limitat.
+function loadDevices() {
+  loadMeross();
+  loadRoomba();
+}
+
 const TABS = {
-  meross: { load: loadMeross },
+  devices: { load: loadDevices },
   tuya: { load: loadTuya },
-  roomba: { load: loadRoomba },
   spotify: { load: loadSpotify, adminOnly: true },
   shopping: { load: loadShopping },
   deco: { load: loadDeco, adminOnly: true },
@@ -1295,7 +1299,7 @@ async function start() {
   });
   document.getElementById('drawer-overlay').addEventListener('click', () => setDrawer(false));
 
-  showTab('meross');
+  showTab('devices');
   pollTimer = setInterval(pollActive, POLL_MS);
 }
 

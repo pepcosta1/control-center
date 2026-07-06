@@ -116,6 +116,9 @@ body {
 .page { display: none; }
 .page.active { display: block; }
 
+/* Diverses targetes dins d'una mateixa vista */
+.page .card + .card { margin-top: 1rem; }
+
 /* Botó de menú (tres barres) */
 .menu-btn {
   display: flex;
