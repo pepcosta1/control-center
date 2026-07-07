@@ -1,5 +1,13 @@
 {
-  "_help": "Codis IR apresos amb l'app de Broadlink, en hexadecimal (començen per 2600...). Enganxa cada codi al seu lloc; una cadena buida vol dir 'encara no après' i el backend retornarà un error clar si es demana.",
+  "_help": "Codis IR apresos amb l'app de Broadlink, en hexadecimal (començen per 2600...). Enganxa cada codi al seu lloc; una cadena buida vol dir 'encara no après'. A la secció 'llum' pots afegir/canviar claus lliurement: cada codi no buit apareix com a botó al panell automàticament.",
+  "llum": {
+    "llum_on": "",
+    "llum_off": "",
+    "llum_color_blau": "",
+    "llum_color_vermell": "",
+    "llum_color_verd": "",
+    "llum_color_blanc": ""
+  },
   "ac": {
     "ac_off": "",
     "ac_cool_22": "",

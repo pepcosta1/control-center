@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const broadlink = require('node-broadlink');
 const config = require('../config');
 
@@ -17,6 +19,7 @@ const config = require('../config');
 
 const DISCOVER_TIMEOUT_MS = 1500;
 const OP_TIMEOUT_MS = 6000;
+const CODES_FILE = path.join(__dirname, '..', 'config', 'broadlinkCodes.json');
 
 let devicePromise = null; // connexió en curs o establerta (es reusa)
 
@@ -90,7 +93,19 @@ async function sendCode(hex) {
   }
 }
 
+// Llegeix els codis IR de disc a cada crida (sense cache de require):
+// així es poden enganxar codis nous sense reiniciar el servei
+function readCodes() {
+  try {
+    return JSON.parse(fs.readFileSync(CODES_FILE, 'utf8'));
+  } catch (err) {
+    console.warn(`[broadlink] No s'ha pogut llegir broadlinkCodes.json: ${err.message}`);
+    return {};
+  }
+}
+
 module.exports = {
   isConfigured,
   sendCode,
+  readCodes,
 };

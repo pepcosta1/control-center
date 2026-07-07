@@ -1,6 +1,5 @@
 const store = require('./store');
 const broadlinkService = require('./broadlinkService');
-const codes = require('../config/broadlinkCodes.json');
 
 /**
  * Servei de l'aire condicionat (Panasonic, només IR via Broadlink RM4).
@@ -22,7 +21,7 @@ function httpError(message, status) {
 }
 
 function acCodes() {
-  return codes.ac || {};
+  return broadlinkService.readCodes().ac || {};
 }
 
 // Temperatures amb codi après (no buit), ordenades

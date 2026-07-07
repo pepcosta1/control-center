@@ -319,6 +319,93 @@ async function loadRoomba() {
   }
 }
 
+// =====================================================================
+// LLUM DE CRISTALL (IR via Broadlink RM4)
+// =====================================================================
+const llumBadge = document.getElementById('llum-badge');
+const llumBody = document.getElementById('llum-body');
+let llumCommandsKey = null; // per no redibuixar si la llista no ha canviat
+let llumSending = false;
+
+// Nom de comanda → etiqueta bonica del botó
+function llumLabel(cmd) {
+  const name = cmd.replace(/^llum_/, '');
+  if (name === 'on') return '💡 Encén';
+  if (name === 'off') return '⭕ Apaga';
+  const emojis = { blau: '🔵', vermell: '🔴', verd: '🟢', blanc: '⚪', groc: '🟡', lila: '🟣', taronja: '🟠', rosa: '🩷' };
+  const text = name.replace(/^color_/, '').replace(/_/g, ' ');
+  const emoji = Object.keys(emojis).find((k) => text.includes(k));
+  return `${emoji ? emojis[emoji] + ' ' : ''}${text.charAt(0).toUpperCase()}${text.slice(1)}`;
+}
+
+function showLlumErr(msg) {
+  const el = document.getElementById('llum-error');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 6000);
+}
+
+async function sendLlumCommand(cmd, btn) {
+  btn.disabled = true;
+  llumSending = true;
+  try {
+    await api('/api/broadlink/send', {
+      method: 'POST',
+      body: JSON.stringify({ command: cmd }),
+    });
+  } catch (err) {
+    showLlumErr(`No s'ha pogut enviar "${llumLabel(cmd)}": ${err.message}`);
+  } finally {
+    btn.disabled = false;
+    llumSending = false;
+  }
+}
+
+function renderLlumButtons(commands) {
+  llumBody.innerHTML = `
+    <div class="rb-controls" id="llum-buttons"></div>
+    <p id="llum-error" class="error hidden"></p>
+  `;
+  const box = document.getElementById('llum-buttons');
+  commands.forEach((cmd) => {
+    const btn = document.createElement('button');
+    btn.className = 'btn-small';
+    btn.textContent = llumLabel(cmd);
+    btn.addEventListener('click', () => sendLlumCommand(cmd, btn));
+    box.appendChild(btn);
+  });
+}
+
+async function loadLlum() {
+  if (llumSending) return; // no redibuixis mentre s'envia una ordre
+  try {
+    const data = await api('/api/broadlink/commands');
+    if (!data.configured) {
+      setBadge(llumBadge, 'no configurat', 'badge-muted');
+      llumBody.innerHTML = '<p class="muted">Afegeix BROADLINK_IP al .env del servidor.</p>';
+      llumCommandsKey = null;
+      return;
+    }
+    if (!data.commands.length) {
+      setBadge(llumBadge, 'sense codis', 'badge-muted');
+      llumBody.innerHTML = '<p class="muted">Aprèn els codis amb l\'app de Broadlink i enganxa\'ls a broadlinkCodes.json.</p>';
+      llumCommandsKey = null;
+      return;
+    }
+    setBadge(llumBadge, 'a punt', 'badge-ok');
+    const key = data.commands.join(',');
+    if (key !== llumCommandsKey) {
+      renderLlumButtons(data.commands);
+      llumCommandsKey = key;
+    }
+  } catch (err) {
+    setBadge(llumBadge, 'error', 'badge-err');
+    llumBody.innerHTML = `<p class="error">${err.message}</p>`;
+    llumCommandsKey = null;
+  }
+}
+
 async function loadTuya() {
   try {
     const data = await api('/api/tuya/status');
@@ -1659,6 +1746,7 @@ let pollTick = 0;
 function loadDevices() {
   loadMeross();
   loadRoomba();
+  loadLlum();
 }
 
 const TABS = {
