@@ -27,6 +27,24 @@ function setBadge(el, text, cls) {
   el.className = `badge ${cls}`;
 }
 
+// Icones SVG (en lloc d'emojis, que a iOS es veuen com a dibuixos de colors)
+const ICON_PATHS = {
+  play: 'M8 5v14l11-7z',
+  pause: 'M6 5h4v14H6zm8 0h4v14h-4z',
+  prev: 'M6 6h2v12H6zm3.5 6 8.5 6V6z',
+  next: 'M16 6h2v12h-2zM6 18l8.5-6L6 6z',
+  volDown: 'M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z',
+  volUp: 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z',
+  volOff: 'M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4 9.91 6.09 12 8.18V4z',
+  search: 'M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
+  mic: 'M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z',
+  home: 'M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z',
+};
+
+function icon(name) {
+  return `<svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="${ICON_PATHS[name]}"/></svg>`;
+}
+
 // --- Sessió ---
 document.getElementById('logout-btn').addEventListener('click', async () => {
   try { await api('/api/auth/logout', { method: 'POST' }); } catch (e) { /* ignora */ }
@@ -263,9 +281,9 @@ function buildRoombaUi() {
       <div class="rb-batt" id="rb-batt">—</div>
     </div>
     <div class="rb-controls">
-      <button id="rb-start" class="btn-small">▶ Neteja</button>
-      <button id="rb-pause" class="btn-small">⏸ Pausa</button>
-      <button id="rb-dock" class="btn-small">🏠 A la base</button>
+      <button id="rb-start" class="btn-small">${icon('play')} Neteja</button>
+      <button id="rb-pause" class="btn-small">${icon('pause')} Pausa</button>
+      <button id="rb-dock" class="btn-small">${icon('home')} A la base</button>
     </div>
     <p id="rb-error" class="error hidden"></p>
   `;
@@ -616,7 +634,7 @@ function buildTvUi() {
       <button id="tv-vol-up" class="btn-round" title="Puja el volum">＋</button>
     </div>
     <div class="rb-controls">
-      <button id="tv-mute" class="btn-small">🔇 Silencia</button>
+      <button id="tv-mute" class="btn-small">${icon('volOff')} Silencia</button>
     </div>
     <div class="player-devices">
       <select id="tv-app" aria-label="Obrir una app a la TV">
@@ -720,7 +738,7 @@ function updateTvUi(tv) {
 
   const muteBtn = document.getElementById('tv-mute');
   muteBtn.dataset.muted = tv.muted ? 'true' : 'false';
-  muteBtn.textContent = tv.muted ? '🔊 Activa so' : '🔇 Silencia';
+  muteBtn.innerHTML = tv.muted ? `${icon('volUp')} Activa so` : `${icon('volOff')} Silencia`;
 }
 
 async function loadTv() {
@@ -887,7 +905,7 @@ async function refreshDevices() {
       return;
     }
     devices.forEach((d) => {
-      const opt = new Option(`${d.active ? '▶ ' : ''}${d.name} (${d.type})`, d.id);
+      const opt = new Option(`${d.active ? '● ' : ''}${d.name} (${d.type})`, d.id);
       opt.selected = d.active;
       sel.appendChild(opt);
     });
@@ -926,15 +944,15 @@ function buildSpotifyPlayer() {
       <span id="sp-time-tot" class="player-time">0:00</span>
     </div>
     <div class="player-controls">
-      <button id="sp-prev" class="btn-round" title="Anterior">⏮</button>
-      <button id="sp-playpause" class="btn-round btn-big" title="Reprodueix/Pausa">▶</button>
-      <button id="sp-next" class="btn-round" title="Següent">⏭</button>
+      <button id="sp-prev" class="btn-round" title="Anterior">${icon('prev')}</button>
+      <button id="sp-playpause" class="btn-round btn-big" title="Reprodueix/Pausa">${icon('play')}</button>
+      <button id="sp-next" class="btn-round" title="Següent">${icon('next')}</button>
     </div>
-    <button id="sp-lyrics" class="btn-small btn-lyrics">🎤 Lletra</button>
+    <button id="sp-lyrics" class="btn-small btn-lyrics">${icon('mic')} Lletra</button>
     <div class="player-volume">
-      <span class="vol-icon">🔉</span>
+      <span class="vol-icon">${icon('volDown')}</span>
       <input type="range" id="sp-volume" min="0" max="100" value="50" step="1" aria-label="Volum">
-      <span class="vol-icon">🔊</span>
+      <span class="vol-icon">${icon('volUp')}</span>
     </div>
     <div class="player-devices">
       <select id="sp-device" aria-label="Dispositiu de reproducció">
@@ -953,7 +971,7 @@ function buildSpotifyPlayer() {
         <option value="artist">Artistes</option>
         <option value="playlist">Llistes</option>
       </select>
-      <button type="submit" class="btn-small">🔍</button>
+      <button type="submit" class="btn-small" aria-label="Cerca">${icon('search')}</button>
     </form>
     <div id="sp-search-results" class="recent-list"></div>
     <p id="sp-error" class="error hidden"></p>
@@ -1140,7 +1158,7 @@ function renderSearchResults(box, results) {
 
     const playIcon = document.createElement('span');
     playIcon.className = 'recent-play';
-    playIcon.textContent = '▶';
+    playIcon.innerHTML = icon('play');
     row.appendChild(playIcon);
 
     row.addEventListener('click', async () => {
@@ -1355,7 +1373,7 @@ async function loadRecent() {
 
       const playIcon = document.createElement('span');
       playIcon.className = 'recent-play';
-      playIcon.textContent = '▶';
+      playIcon.innerHTML = icon('play');
       row.appendChild(playIcon);
 
       row.addEventListener('click', async () => {
@@ -1409,7 +1427,7 @@ function updateSpotifyPlayer(np) {
     artist.textContent = 'Res sonant';
     cover.classList.add('hidden');
   }
-  btn.textContent = np.playing ? '⏸' : '▶';
+  btn.innerHTML = np.playing ? icon('pause') : icon('play');
   updateProgressBar();
 
   const volBar = document.getElementById('sp-volume');

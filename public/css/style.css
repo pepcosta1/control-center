@@ -71,6 +71,19 @@ input, select { font-family: inherit; }
 .btn-small:active, .btn-round:active, .btn-ghost:active,
 .login-card button:active, .recent-row:active { transform: scale(0.96); }
 
+/* Icones SVG (substitueixen els emojis als controls) */
+.icon {
+  width: 1.15em;
+  height: 1.15em;
+  fill: currentColor;
+  vertical-align: -0.22em;
+}
+
+.btn-small .icon { margin-right: 0.15em; }
+.vol-icon { display: flex; align-items: center; color: var(--muted); }
+.vol-icon .icon { width: 18px; height: 18px; }
+.recent-play .icon { width: 13px; height: 13px; }
+
 /* --- Coreografia de càrrega ------------------------------- */
 
 @keyframes rise-in {
@@ -617,7 +630,13 @@ input, select { font-family: inherit; }
   height: 44px;
   font-size: 1rem;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.btn-round .icon { width: 20px; height: 20px; }
+.btn-big .icon { width: 26px; height: 26px; }
 
 .btn-round:hover { border-color: var(--accent); color: var(--accent); }
 
