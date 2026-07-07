@@ -34,6 +34,10 @@ const config = {
     deviceId: process.env.TUYA_DEVICE_ID_TERMOSTAT || '',
     region: (process.env.TUYA_REGION || 'eu').toLowerCase(),
   },
+  smartthings: {
+    pat: process.env.SMARTTHINGS_PAT || '',
+    deviceId: process.env.SMARTTHINGS_TV_DEVICE_ID || '',
+  },
   roomba: {
     ip: process.env.ROOMBA_IP || '',
     blid: process.env.ROOMBA_BLID || '',

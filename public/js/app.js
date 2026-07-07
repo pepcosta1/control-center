@@ -340,6 +340,157 @@ async function loadTuya() {
 }
 
 // =====================================================================
+// TV (SAMSUNG via SmartThings)
+// =====================================================================
+const tvBadge = document.getElementById('tv-badge');
+const tvBody = document.getElementById('tv-body');
+let tvUiBuilt = false;
+
+function showTvErr(msg) {
+  const el = document.getElementById('tv-error');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 5000);
+}
+
+function buildTvUi() {
+  tvBody.innerHTML = `
+    <div class="device-row">
+      <div class="device-info">
+        <div class="device-name" id="tv-name">TV</div>
+        <div class="device-meta" id="tv-meta">—</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="tv-power">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="thermo" id="tv-volume-ctrl">
+      <button id="tv-vol-down" class="btn-round" title="Baixa el volum">−</button>
+      <div class="thermo-display">
+        <div class="thermo-target" id="tv-volume">—</div>
+        <div class="device-meta">volum</div>
+      </div>
+      <button id="tv-vol-up" class="btn-round" title="Puja el volum">＋</button>
+    </div>
+    <div class="rb-controls">
+      <button id="tv-mute" class="btn-small">🔇 Silencia</button>
+      <button id="tv-netflix" class="btn-small">▶ Obrir Netflix</button>
+    </div>
+    <p id="tv-error" class="error hidden"></p>
+  `;
+  tvUiBuilt = true;
+
+  const power = document.getElementById('tv-power');
+  power.addEventListener('change', async () => {
+    const wanted = power.checked;
+    power.disabled = true;
+    try {
+      await api('/api/smartthings/power', {
+        method: 'POST',
+        body: JSON.stringify({ on: wanted }),
+      });
+      setTimeout(loadTv, 1200); // dona temps a la TV a aplicar el canvi
+    } catch (err) {
+      power.checked = !wanted; // reverteix si ha fallat
+      showTvErr(`No s'ha pogut canviar l'estat: ${err.message}`);
+    } finally {
+      power.disabled = false;
+    }
+  });
+
+  const nudge = (direction) => async (e) => {
+    e.target.disabled = true;
+    try {
+      await api('/api/smartthings/volume', {
+        method: 'POST',
+        body: JSON.stringify({ direction }),
+      });
+      setTimeout(loadTv, 600);
+    } catch (err) {
+      showTvErr(`No s'ha pogut canviar el volum: ${err.message}`);
+    } finally {
+      e.target.disabled = false;
+    }
+  };
+  document.getElementById('tv-vol-down').addEventListener('click', nudge('down'));
+  document.getElementById('tv-vol-up').addEventListener('click', nudge('up'));
+
+  document.getElementById('tv-mute').addEventListener('click', async (e) => {
+    e.target.disabled = true;
+    try {
+      // El botó reflecteix l'acció contrària a l'estat actual (data-muted)
+      const muted = e.target.dataset.muted !== 'true';
+      await api('/api/smartthings/mute', {
+        method: 'POST',
+        body: JSON.stringify({ muted }),
+      });
+      setTimeout(loadTv, 600);
+    } catch (err) {
+      showTvErr(`No s'ha pogut silenciar: ${err.message}`);
+    } finally {
+      e.target.disabled = false;
+    }
+  });
+
+  document.getElementById('tv-netflix').addEventListener('click', async (e) => {
+    e.target.disabled = true;
+    try {
+      await api('/api/smartthings/launch-app', {
+        method: 'POST',
+        body: JSON.stringify({ appId: 'netflix' }),
+      });
+    } catch (err) {
+      showTvErr(`No s'ha pogut obrir Netflix: ${err.message}`);
+    } finally {
+      e.target.disabled = false;
+    }
+  });
+}
+
+function updateTvUi(tv) {
+  document.getElementById('tv-name').textContent = 'TV Samsung';
+  const metaParts = [];
+  if (tv.app) metaParts.push(tv.app);
+  else if (tv.inputSource) metaParts.push(tv.inputSource);
+  if (!tv.online) metaParts.push('fora de línia');
+  document.getElementById('tv-meta').textContent = metaParts.join(' · ') || 'televisor';
+
+  const power = document.getElementById('tv-power');
+  if (!power.disabled) power.checked = tv.power === true;
+  power.disabled = !tv.online || tv.power === null;
+
+  const ctrl = document.getElementById('tv-volume-ctrl');
+  ctrl.classList.toggle('thermo-off', tv.power === false);
+  document.getElementById('tv-volume').textContent = tv.volume !== null ? tv.volume : '—';
+
+  const muteBtn = document.getElementById('tv-mute');
+  muteBtn.dataset.muted = tv.muted ? 'true' : 'false';
+  muteBtn.textContent = tv.muted ? '🔊 Activa so' : '🔇 Silencia';
+}
+
+async function loadTv() {
+  try {
+    const data = await api('/api/smartthings/status');
+    if (data.status === 'unconfigured') {
+      setBadge(tvBadge, 'no configurat', 'badge-muted');
+      tvBody.innerHTML = '<p class="muted">Afegeix SMARTTHINGS_PAT i SMARTTHINGS_TV_DEVICE_ID al .env del servidor.</p>';
+      tvUiBuilt = false;
+      return;
+    }
+    const tv = data.tv;
+    setBadge(tvBadge, tv.online ? 'connectat' : 'fora de línia', tv.online ? 'badge-ok' : 'badge-muted');
+    if (!tvUiBuilt) buildTvUi();
+    updateTvUi(tv);
+  } catch (err) {
+    setBadge(tvBadge, 'error', 'badge-err');
+    tvBody.innerHTML = `<p class="error">${err.message}</p>`;
+    tvUiBuilt = false;
+  }
+}
+
+// =====================================================================
 // SPOTIFY
 // =====================================================================
 const spotifyBadge = document.getElementById('spotify-badge');
@@ -1228,6 +1379,7 @@ function loadDevices() {
 const TABS = {
   devices: { load: loadDevices },
   tuya: { load: loadTuya },
+  tv: { load: loadTv, adminOnly: true },
   spotify: { load: loadSpotify, adminOnly: true },
   shopping: { load: loadShopping },
   deco: { load: loadDeco, adminOnly: true },
