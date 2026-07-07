@@ -1,14 +1,26 @@
+/* ============================================================
+   Centre de Control — "la casa de nit"
+   Color dominant: verd tinta fosc. Accent: ambre càlid (llum de làmpada).
+   Tipografia: Futura/Avenir (display), Avenir/Optima (text), Menlo (xifres).
+   ============================================================ */
+
 :root {
-  --bg: #0f172a;
-  --card: #1e293b;
-  --card-hover: #263548;
-  --text: #e2e8f0;
-  --muted: #94a3b8;
-  --accent: #38bdf8;
-  --success: #4ade80;
-  --danger: #f87171;
-  --border: #334155;
-  --radius: 14px;
+  --bg: #0d1410;
+  --bg-deep: #080d0a;
+  --card: #131c16;
+  --card-hover: #1a2620;
+  --text: #e9e6d8;
+  --muted: #93a396;
+  --accent: #f2a33c;
+  --accent-soft: rgba(242, 163, 60, 0.14);
+  --accent-ink: #241503;
+  --success: #82d18d;
+  --danger: #ef7f6e;
+  --border: #24322a;
+  --radius: 10px;
+  --font-display: "Futura", "Avenir Next Condensed", "Avenir Next", "Trebuchet MS", sans-serif;
+  --font-body: "Avenir Next", "Avenir", "Optima", "Gill Sans", "Gill Sans MT", "Trebuchet MS", sans-serif;
+  --font-num: "Menlo", "SF Mono", "Consolas", monospace;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -16,7 +28,7 @@
 html { -webkit-text-size-adjust: 100%; }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-body);
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -25,11 +37,58 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* Atmosfera de fons: llum ambre a dalt, profunditat verda a baix,
+   retícula tècnica molt tènue. En pseudoelement fix (iOS no gestiona
+   bé background-attachment: fixed). */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 85% at 88% -12%, rgba(242, 163, 60, 0.12), transparent 55%),
+    radial-gradient(110% 80% at -8% 108%, rgba(52, 104, 78, 0.28), transparent 62%),
+    repeating-linear-gradient(0deg, transparent 0 27px, rgba(233, 230, 216, 0.022) 27px 28px),
+    repeating-linear-gradient(90deg, transparent 0 27px, rgba(233, 230, 216, 0.022) 27px 28px),
+    var(--bg);
+}
+
 .hidden { display: none !important; }
 .muted { color: var(--muted); font-size: 0.9rem; }
 .error { color: var(--danger); font-size: 0.9rem; }
 
-/* --- Login --- */
+button { font-family: inherit; }
+input, select { font-family: inherit; }
+
+/* Micro-interacció compartida: tacte físic en prémer */
+.btn-small, .btn-round, .btn-ghost, .btn-lyrics, .btn-connect,
+.login-card button, .recent-row, .drawer-item {
+  transition: transform 0.12s ease, background 0.15s ease, color 0.15s ease,
+              border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-small:active, .btn-round:active, .btn-ghost:active,
+.login-card button:active, .recent-row:active { transform: scale(0.96); }
+
+/* --- Coreografia de càrrega ------------------------------- */
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bar-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* --- Login -------------------------------------------------- */
 .login-page {
   display: flex;
   align-items: center;
@@ -40,25 +99,75 @@ body {
 .login-card {
   width: 100%;
   max-width: 360px;
-  background: var(--card);
+  background: linear-gradient(180deg, rgba(233, 230, 216, 0.035), transparent 45%), var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 2rem 1.5rem;
+  padding: 2.2rem 1.6rem;
   text-align: center;
+  position: relative;
+  animation: rise-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
-.login-logo { font-size: 2.5rem; margin-bottom: 0.5rem; }
+/* Pestanya ambre: la marca de tots els panells */
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 18px;
+  width: 30px;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 0 0 3px 3px;
+}
 
-.login-card h1 { font-size: 1.3rem; margin-bottom: 1.5rem; font-weight: 600; }
+.login-logo {
+  font-size: 2.2rem;
+  line-height: 1;
+  width: 4.2rem;
+  height: 4.2rem;
+  margin: 0 auto 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid rgba(242, 163, 60, 0.35);
+  border-radius: 50%;
+  animation: fade-in 0.6s 0.15s ease backwards;
+}
 
-.login-card form { display: flex; flex-direction: column; gap: 0.5rem; text-align: left; }
+.login-card h1 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-bottom: 1.6rem;
+  animation: fade-in 0.6s 0.25s ease backwards;
+}
 
-.login-card label { font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem; }
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+  animation: fade-in 0.6s 0.35s ease backwards;
+}
+
+.login-card label {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-top: 0.5rem;
+}
 
 .login-card input {
-  background: var(--bg);
+  background: var(--bg-deep);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
   color: var(--text);
   font-size: 1rem;
   padding: 0.75rem;
@@ -69,18 +178,22 @@ body {
 .login-card button {
   margin-top: 1rem;
   background: var(--accent);
-  color: #082f49;
+  color: var(--accent-ink);
+  font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 0.85rem;
   cursor: pointer;
+  box-shadow: 0 4px 18px rgba(242, 163, 60, 0.25);
 }
 
 .login-card button:disabled { opacity: 0.6; }
 
-/* --- Dashboard --- */
+/* --- Dashboard ---------------------------------------------- */
 .topbar {
   display: flex;
   align-items: center;
@@ -88,13 +201,24 @@ body {
   padding: 1rem 1.25rem;
   position: sticky;
   top: 0;
-  background: rgba(15, 23, 42, 0.9);
-  backdrop-filter: blur(8px);
+  background: rgba(13, 20, 16, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
   z-index: 10;
+  animation: bar-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
-.topbar h1 { font-size: 1.1rem; font-weight: 600; }
+.topbar h1 {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  flex: 1;
+  text-align: left;
+  margin-left: 0.25rem;
+}
 
 .btn-ghost {
   background: transparent;
@@ -106,6 +230,8 @@ body {
   cursor: pointer;
 }
 
+.btn-ghost:hover { color: var(--accent); border-color: var(--accent); }
+
 .dashboard {
   padding: 1rem;
   max-width: 640px;
@@ -116,8 +242,16 @@ body {
 .page { display: none; }
 .page.active { display: block; }
 
-/* Diverses targetes dins d'una mateixa vista */
 .page .card + .card { margin-top: 1rem; }
+
+/* Entrada esglaonada dels panells (es reactiva a cada canvi de vista,
+   perquè display none→block reinicia l'animació) */
+.page.active .card {
+  animation: rise-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.page.active .card:nth-child(2) { animation-delay: 0.08s; }
+.page.active .card:nth-child(3) { animation-delay: 0.16s; }
+.page.active .card:nth-child(4) { animation-delay: 0.24s; }
 
 /* Botó de menú (tres barres) */
 .menu-btn {
@@ -139,13 +273,12 @@ body {
   height: 2px;
   border-radius: 2px;
   background: var(--text);
+  transition: background 0.15s ease, width 0.2s ease;
 }
 
-.topbar h1 {
-  flex: 1;
-  text-align: left;
-  margin-left: 0.25rem;
-}
+.menu-btn span:nth-child(2) { width: 70%; }
+.menu-btn:hover span, .menu-btn:active span { background: var(--accent); }
+.menu-btn:active span:nth-child(2) { width: 100%; }
 
 /* Menú lateral (drawer) */
 .drawer {
@@ -155,11 +288,11 @@ body {
   bottom: 0;
   width: 250px;
   max-width: 80vw;
-  background: var(--card);
+  background: linear-gradient(180deg, rgba(233, 230, 216, 0.03), transparent 30%), var(--card);
   border-right: 1px solid var(--border);
   z-index: 40;
   transform: translateX(-100%);
-  transition: transform 0.22s ease;
+  transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
   padding-top: calc(env(safe-area-inset-top) + 0.5rem);
   display: flex;
   flex-direction: column;
@@ -169,11 +302,12 @@ body {
 .drawer.open { transform: translateX(0); }
 
 .drawer-head {
+  font-family: var(--font-display);
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
+  letter-spacing: 0.12em;
+  color: var(--accent);
   padding: 0.9rem 1.25rem 0.6rem;
 }
 
@@ -189,19 +323,38 @@ body {
   width: 100%;
 }
 
+/* Els ítems del menú entren en cascada quan s'obre */
+@keyframes drawer-item-in {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.drawer.open .drawer-item {
+  animation: drawer-item-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.drawer.open .drawer-item:nth-child(2)  { animation-delay: 0.03s; }
+.drawer.open .drawer-item:nth-child(3)  { animation-delay: 0.06s; }
+.drawer.open .drawer-item:nth-child(4)  { animation-delay: 0.09s; }
+.drawer.open .drawer-item:nth-child(5)  { animation-delay: 0.12s; }
+.drawer.open .drawer-item:nth-child(6)  { animation-delay: 0.15s; }
+.drawer.open .drawer-item:nth-child(7)  { animation-delay: 0.18s; }
+.drawer.open .drawer-item:nth-child(8)  { animation-delay: 0.21s; }
+.drawer.open .drawer-item:nth-child(9)  { animation-delay: 0.24s; }
+.drawer.open .drawer-item:nth-child(10) { animation-delay: 0.27s; }
+
 .drawer-item:hover { background: var(--card-hover); }
 
 .drawer-item.active {
   border-left-color: var(--accent);
   color: var(--accent);
   font-weight: 600;
-  background: var(--bg);
+  background: var(--bg-deep);
 }
 
 .drawer-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(4, 8, 6, 0.55);
   z-index: 30;
   opacity: 0;
   pointer-events: none;
@@ -210,11 +363,25 @@ body {
 
 .drawer-overlay.open { opacity: 1; pointer-events: auto; }
 
+/* --- Panells ------------------------------------------------- */
 .card {
-  background: var(--card);
+  background: linear-gradient(180deg, rgba(233, 230, 216, 0.03), transparent 42%), var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1.1rem 1.2rem;
+  position: relative;
+}
+
+/* Pestanya ambre a la vora superior de cada panell */
+.card::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 16px;
+  width: 26px;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 0 0 3px 3px;
 }
 
 .card-header {
@@ -224,21 +391,28 @@ body {
   margin-bottom: 0.75rem;
 }
 
-.card-header h2 { font-size: 1.05rem; font-weight: 600; }
+.card-header h2 {
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+}
 
 .badge {
-  font-size: 0.7rem;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
   font-weight: 600;
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
   background: var(--border);
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.05em;
 }
 
-.badge-ok { background: rgba(74, 222, 128, 0.15); color: var(--success); }
-.badge-err { background: rgba(248, 113, 113, 0.15); color: var(--danger); }
+.badge-ok { background: rgba(130, 209, 141, 0.14); color: var(--success); }
+.badge-err { background: rgba(239, 127, 110, 0.14); color: var(--danger); }
 .badge-muted { background: var(--border); color: var(--muted); }
 
 /* --- Llista de dispositius Meross --- */
@@ -249,11 +423,14 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  background: var(--bg);
+  background: var(--bg-deep);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 0.75rem 0.9rem;
+  transition: border-color 0.15s ease;
 }
+
+.device-row:hover { border-color: rgba(242, 163, 60, 0.35); }
 
 .device-info { min-width: 0; }
 
@@ -269,7 +446,7 @@ body {
 
 .device-offline { opacity: 0.5; }
 
-/* Interruptor (toggle) */
+/* Interruptor (toggle) amb molla */
 .switch {
   position: relative;
   flex-shrink: 0;
@@ -284,7 +461,7 @@ body {
   inset: 0;
   background: var(--border);
   border-radius: 999px;
-  transition: background 0.2s;
+  transition: background 0.25s;
   cursor: pointer;
 }
 
@@ -295,12 +472,15 @@ body {
   height: 24px;
   left: 3px;
   top: 3px;
-  background: #fff;
+  background: #f4f1e4;
   border-radius: 50%;
-  transition: transform 0.2s;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.switch input:checked + .slider { background: var(--success); }
+.switch input:checked + .slider {
+  background: var(--accent);
+  box-shadow: 0 0 12px rgba(242, 163, 60, 0.35);
+}
 .switch input:checked + .slider::before { transform: translateX(22px); }
 .switch input:disabled + .slider { opacity: 0.4; cursor: not-allowed; }
 
@@ -316,6 +496,7 @@ body {
 .thermo-display { text-align: center; min-width: 7.5rem; }
 
 .thermo-target {
+  font-family: var(--font-num);
   font-size: 2rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -328,6 +509,7 @@ body {
 
 /* --- Roomba --- */
 .rb-batt {
+  font-family: var(--font-num);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
@@ -349,17 +531,22 @@ body {
   flex-shrink: 0;
 }
 
-.dot-ok { background: var(--success); box-shadow: 0 0 6px rgba(74, 222, 128, 0.6); }
-.dot-err { background: var(--danger); box-shadow: 0 0 6px rgba(248, 113, 113, 0.6); }
+@keyframes dot-breathe {
+  0%, 100% { box-shadow: 0 0 5px rgba(130, 209, 141, 0.5); }
+  50%      { box-shadow: 0 0 11px rgba(130, 209, 141, 0.85); }
+}
+
+.dot-ok { background: var(--success); animation: dot-breathe 2.6s ease-in-out infinite; }
+.dot-err { background: var(--danger); box-shadow: 0 0 6px rgba(239, 127, 110, 0.6); }
 
 .deco-presence {
   text-align: center;
   font-weight: 700;
   font-size: 1.05rem;
   padding: 0.5rem;
-  border-radius: 10px;
+  border-radius: 8px;
   margin-bottom: 0.75rem;
-  background: var(--bg);
+  background: var(--bg-deep);
   border: 1px solid var(--border);
 }
 
@@ -367,7 +554,7 @@ body {
 .presence-away { color: var(--muted); }
 
 .deco-client { cursor: default; }
-.deco-client:hover { background: transparent; }
+.deco-client:hover { background: transparent; border-color: var(--border); }
 
 /* --- Reproductor Spotify --- */
 .player {
@@ -383,6 +570,7 @@ body {
   border-radius: 8px;
   object-fit: cover;
   flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(4, 8, 6, 0.6);
 }
 
 .player-track { min-width: 0; }
@@ -395,7 +583,8 @@ body {
 }
 
 .player-time {
-  font-size: 0.75rem;
+  font-family: var(--font-num);
+  font-size: 0.72rem;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
@@ -420,7 +609,7 @@ body {
 }
 
 .btn-round {
-  background: var(--bg);
+  background: var(--bg-deep);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 50%;
@@ -430,14 +619,19 @@ body {
   cursor: pointer;
 }
 
+.btn-round:hover { border-color: var(--accent); color: var(--accent); }
+
 .btn-big {
   width: 56px;
   height: 56px;
   font-size: 1.3rem;
   background: var(--accent);
-  color: #082f49;
+  color: var(--accent-ink);
   border: none;
+  box-shadow: 0 4px 18px rgba(242, 163, 60, 0.3);
 }
+
+.btn-big:hover { color: var(--accent-ink); }
 
 .player-volume {
   display: flex;
@@ -460,7 +654,7 @@ body {
 
 .player-devices select {
   width: 100%;
-  background: var(--bg);
+  background: var(--bg-deep);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 8px;
@@ -476,7 +670,7 @@ body {
 .player-playlists select {
   flex: 1;
   min-width: 0;
-  background: var(--bg);
+  background: var(--bg-deep);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 8px;
@@ -485,7 +679,7 @@ body {
 }
 
 .btn-small {
-  background: var(--bg);
+  background: var(--bg-deep);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 8px;
@@ -494,6 +688,8 @@ body {
   cursor: pointer;
   flex-shrink: 0;
 }
+
+.btn-small:hover { border-color: var(--accent); color: var(--accent); }
 
 /* Cercador Spotify */
 .sp-search {
@@ -505,7 +701,7 @@ body {
 .sp-search input {
   flex: 1;
   min-width: 0;
-  background: var(--bg);
+  background: var(--bg-deep);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 8px;
@@ -516,7 +712,7 @@ body {
 .sp-search input:focus { outline: 2px solid var(--accent); border-color: transparent; }
 
 .sp-search select {
-  background: var(--bg);
+  background: var(--bg-deep);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 8px;
@@ -534,11 +730,12 @@ body {
 .recent-section { margin-top: 1rem; }
 
 .recent-title {
-  font-size: 0.8rem;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.09em;
   margin-bottom: 0.5rem;
   cursor: pointer;
   user-select: none;
@@ -547,7 +744,7 @@ body {
 
 .recent-title::-webkit-details-marker { display: none; }
 
-details[open] .recent-title { color: var(--text); }
+details[open] .recent-title { color: var(--accent); }
 
 .recent-list {
   display: flex;
@@ -616,7 +813,7 @@ details[open] .recent-title { color: var(--text); }
 .shop-form input {
   flex: 1;
   min-width: 0;
-  background: var(--bg);
+  background: var(--bg-deep);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 8px;
@@ -651,7 +848,7 @@ details[open] .recent-title { color: var(--text); }
 .shop-label input[type="checkbox"] {
   width: 20px;
   height: 20px;
-  accent-color: var(--success);
+  accent-color: var(--accent);
   flex-shrink: 0;
 }
 
@@ -659,6 +856,7 @@ details[open] .recent-title { color: var(--text); }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: color 0.2s ease;
 }
 
 .shop-done .shop-label span {
@@ -688,16 +886,17 @@ details[open] .recent-title { color: var(--text); }
 .lyrics-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(4, 8, 6, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
   z-index: 100;
+  animation: fade-in 0.2s ease;
 }
 
 .lyrics-modal {
-  background: var(--card);
+  background: linear-gradient(180deg, rgba(233, 230, 216, 0.03), transparent 30%), var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   width: 100%;
@@ -706,6 +905,7 @@ details[open] .recent-title { color: var(--text); }
   max-height: 80dvh;
   display: flex;
   flex-direction: column;
+  animation: rise-in 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .lyrics-header {
@@ -739,7 +939,7 @@ details[open] .recent-title { color: var(--text); }
 .lyric-line:hover { background: var(--card-hover); }
 
 .lyric-line.active {
-  color: var(--text);
+  color: var(--accent);
   font-weight: 700;
   font-size: 1.05rem;
   transform: translateX(2px);
@@ -752,6 +952,15 @@ details[open] .recent-title { color: var(--text); }
   color: #fff;
   font-weight: 700;
   text-decoration: none;
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 0.8rem;
+}
+
+/* --- Accessibilitat: sense moviment si l'usuari ho demana --- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
