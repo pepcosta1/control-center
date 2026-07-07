@@ -502,32 +502,58 @@ async function loadTv() {
   }
 }
 
-// Obre una app a la TV assegurant que estigui encesa: si està apagada,
-// l'encén, espera que arrenqui i llavors llança l'app (amb un reintent).
+// Obre una app a la TV assegurant que estigui encesa. L'estat del núvol pot
+// estar desfasat (la TV en standby de vegades encara consta "encesa"), així
+// que no ens en refiem: si el llançament falla per "apagat", l'encenem i
+// insistim fins que la TV accepti l'ordre.
 async function launchAppEnsuringTvOn(appId) {
   const launch = () =>
     api('/api/smartthings/launch-app', { method: 'POST', body: JSON.stringify({ appId }) });
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const looksOff = (err) => /apagat|no respon/i.test(err.message);
 
-  const data = await api('/api/smartthings/status');
-  if (data.status !== 'connected' || !data.tv) {
-    throw new Error('La TV no està disponible');
-  }
-  if (data.tv.power === true) {
-    // Ja encesa: obre l'app directament
-    await launch();
-    return;
-  }
-
-  // Apagada: encén i espera que arrenqui abans d'obrir l'app
-  await api('/api/smartthings/power', { method: 'POST', body: JSON.stringify({ on: true }) });
-  await new Promise((r) => setTimeout(r, 6000));
+  // Si l'estat diu clarament "apagada", ens estalviem el primer intent
+  let power = null;
   try {
-    await launch();
-  } catch (err) {
-    // Encara arrencant: un últim reintent després d'esperar una mica més
-    await new Promise((r) => setTimeout(r, 4000));
-    await launch();
+    const data = await api('/api/smartthings/status');
+    power = data.tv ? data.tv.power : null;
+  } catch (e) { /* estat no disponible: provem el llançament igualment */ }
+
+  if (power !== false) {
+    try {
+      await launch();
+      return; // la TV estava encesa de veritat
+    } catch (err) {
+      if (!looksOff(err)) throw err; // error d'un altre tipus: no insistim
+    }
   }
+
+  // Apagada (o l'estat mentia): encén i reintenta fins que arrenqui
+  await api('/api/smartthings/power', { method: 'POST', body: JSON.stringify({ on: true }) });
+  let lastErr = null;
+  for (const wait of [7000, 5000, 5000]) {
+    await sleep(wait);
+    try {
+      await launch();
+      return;
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+
+  // Si després de tot la TV segueix apagada, l'ordre d'encendre no li arriba:
+  // gairebé sempre és l'ajust "Encendre amb el mòbil" desactivat a la TV
+  try {
+    const after = await api('/api/smartthings/status');
+    if (after.tv && after.tv.power === false) {
+      throw new Error(
+        'La TV no s\'encén remotament. Activa a la TV: Configuració → General → Xarxa → Configuració avançada → "Encendre amb el mòbil"'
+      );
+    }
+  } catch (err) {
+    if (/Encendre amb el mòbil/.test(err.message)) throw err;
+  }
+  throw new Error(`la TV s'ha encès però no ha obert l'app (${lastErr.message})`);
 }
 
 // =====================================================================
