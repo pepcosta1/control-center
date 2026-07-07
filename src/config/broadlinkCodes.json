@@ -1,0 +1,11 @@
+{
+  "_help": "Codis IR apresos amb l'app de Broadlink, en hexadecimal (començen per 2600...). Enganxa cada codi al seu lloc; una cadena buida vol dir 'encara no après' i el backend retornarà un error clar si es demana.",
+  "ac": {
+    "ac_off": "",
+    "ac_cool_22": "",
+    "ac_cool_23": "",
+    "ac_cool_24": "",
+    "ac_cool_25": "",
+    "ac_cool_26": ""
+  }
+}

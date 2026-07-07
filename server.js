@@ -36,6 +36,7 @@ app.use('/api/auth', require('./src/routes/auth'));
 app.use('/api/meross', requireAuth, require('./src/routes/meross'));
 app.use('/api/tuya', requireAuth, require('./src/routes/tuya'));
 app.use('/api/smartthings', requireAuth, blockRestricted, require('./src/routes/smartthings'));
+app.use('/api/ac', requireAuth, blockRestricted, require('./src/routes/ac'));
 app.use('/api/roomba', requireAuth, require('./src/routes/roomba'));
 app.use('/api/spotify', requireAuth, blockRestricted, require('./src/routes/spotify'));
 app.use('/api/discord', requireAuth, blockRestricted, require('./src/routes/discord'));

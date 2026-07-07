@@ -38,6 +38,9 @@ const config = {
     pat: process.env.SMARTTHINGS_PAT || '',
     deviceId: process.env.SMARTTHINGS_TV_DEVICE_ID || '',
   },
+  broadlink: {
+    ip: process.env.BROADLINK_IP || '',
+  },
   roomba: {
     ip: process.env.ROOMBA_IP || '',
     blid: process.env.ROOMBA_BLID || '',

@@ -340,6 +340,160 @@ async function loadTuya() {
 }
 
 // =====================================================================
+// AIRE CONDICIONAT (PANASONIC via Broadlink RM4, IR)
+// =====================================================================
+const acBadge = document.getElementById('ac-badge');
+const acBody = document.getElementById('ac-body');
+let acUiBuilt = false;
+let acTemps = [];          // temperatures amb codi IR après (llista discreta)
+let acLastTemp = null;     // última temperatura assumida pel servidor
+let acPendingTemp = null;  // temperatura triada per l'usuari, pendent d'enviar
+let acSendTimer = null;
+
+function showAcErr(msg) {
+  const el = document.getElementById('ac-error');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 6000);
+}
+
+function renderAcTarget(temp, pending) {
+  const el = document.getElementById('ac-target');
+  if (!el) return;
+  el.textContent = typeof temp === 'number' ? `${temp} °C` : '—';
+  el.classList.toggle('pending', !!pending);
+}
+
+// Els codis IR són combinacions tancades: +/- salta a la següent temp APRESA
+function nudgeAcTemp(direction) {
+  if (!acTemps.length) {
+    showAcErr('Cap temperatura apresa: enganxa els codis IR a broadlinkCodes.json');
+    return;
+  }
+  const base = acPendingTemp !== null ? acPendingTemp : acLastTemp;
+  let idx = acTemps.indexOf(base);
+  if (idx === -1) {
+    idx = direction > 0 ? -1 : acTemps.length; // sense base: comença per un extrem
+  }
+  const next = Math.min(acTemps.length - 1, Math.max(0, idx + direction));
+  acPendingTemp = acTemps[next];
+  renderAcTarget(acPendingTemp, true);
+  clearTimeout(acSendTimer);
+  acSendTimer = setTimeout(sendAcTemp, 900);
+}
+
+async function sendAcTemp() {
+  const temp = acPendingTemp;
+  if (temp === null) return;
+  try {
+    const { ac } = await api('/api/ac/set', {
+      method: 'POST',
+      body: JSON.stringify({ temp }),
+    });
+    acLastTemp = ac.temp;
+    renderAcTarget(ac.temp, false);
+    updateAcUi(ac);
+  } catch (err) {
+    showAcErr(`No s'ha pogut canviar la temperatura: ${err.message}`);
+    renderAcTarget(acLastTemp, false);
+  } finally {
+    acPendingTemp = null;
+  }
+}
+
+function buildAcUi() {
+  acBody.innerHTML = `
+    <div class="device-row">
+      <div class="device-info">
+        <div class="device-name">Aire condicionat</div>
+        <div class="device-meta" id="ac-meta">—</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="ac-power">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="thermo" id="ac-thermo">
+      <button id="ac-temp-down" class="btn-round" title="Baixa la temperatura">−</button>
+      <div class="thermo-display">
+        <div class="thermo-target" id="ac-target">—</div>
+        <div class="device-meta">fred · <span id="ac-temps-hint">—</span></div>
+      </div>
+      <button id="ac-temp-up" class="btn-round" title="Puja la temperatura">＋</button>
+    </div>
+    <p class="muted">ℹ️ Estat assumit: l'IR no rep confirmació de l'aparell.</p>
+    <p id="ac-error" class="error hidden"></p>
+  `;
+  acUiBuilt = true;
+
+  const power = document.getElementById('ac-power');
+  power.addEventListener('change', async () => {
+    const wanted = power.checked;
+    power.disabled = true;
+    try {
+      const { ac } = await api('/api/ac/set', {
+        method: 'POST',
+        body: JSON.stringify({ power: wanted }),
+      });
+      updateAcUi(ac);
+    } catch (err) {
+      power.checked = !wanted; // reverteix si ha fallat
+      showAcErr(`No s'ha pogut ${wanted ? 'engegar' : 'apagar'}: ${err.message}`);
+    } finally {
+      power.disabled = false;
+    }
+  });
+
+  document.getElementById('ac-temp-down').addEventListener('click', () => nudgeAcTemp(-1));
+  document.getElementById('ac-temp-up').addEventListener('click', () => nudgeAcTemp(1));
+}
+
+function updateAcUi(ac) {
+  acTemps = ac.availableTemps || [];
+  acLastTemp = ac.temp;
+
+  const metaParts = [];
+  if (ac.power === true) metaParts.push('engegat (assumit)');
+  else if (ac.power === false) metaParts.push('apagat (assumit)');
+  else metaParts.push('estat desconegut');
+  document.getElementById('ac-meta').textContent = metaParts.join(' · ');
+
+  document.getElementById('ac-temps-hint').textContent = acTemps.length
+    ? `apreses: ${acTemps.join(', ')} °C`
+    : 'cap codi après';
+  document.getElementById('ac-thermo').classList.toggle('thermo-off', ac.power === false);
+
+  const power = document.getElementById('ac-power');
+  if (!power.disabled) power.checked = ac.power === true;
+  power.disabled = !ac.offAvailable && !acTemps.length; // sense cap codi no es pot fer res
+
+  // No trepitgis l'objectiu mentre l'usuari està tocant +/-
+  if (acPendingTemp === null) renderAcTarget(ac.temp, false);
+}
+
+async function loadAc() {
+  try {
+    const data = await api('/api/ac/status');
+    if (data.status === 'unconfigured') {
+      setBadge(acBadge, 'no configurat', 'badge-muted');
+      acBody.innerHTML = '<p class="muted">Afegeix BROADLINK_IP al .env del servidor.</p>';
+      acUiBuilt = false;
+      return;
+    }
+    const ac = data.ac;
+    const hasCodes = (ac.availableTemps || []).length > 0 || ac.offAvailable;
+    setBadge(acBadge, hasCodes ? 'assumit' : 'sense codis', hasCodes ? 'badge-ok' : 'badge-muted');
+    if (!acUiBuilt) buildAcUi();
+    updateAcUi(ac);
+  } catch (err) {
+    setBadge(acBadge, 'error', 'badge-err');
+    acBody.innerHTML = `<p class="error">${err.message}</p>`;
+    acUiBuilt = false;
+  }
+}
+
+// =====================================================================
 // TV (SAMSUNG via SmartThings)
 // =====================================================================
 const tvBadge = document.getElementById('tv-badge');
@@ -1510,6 +1664,7 @@ function loadDevices() {
 const TABS = {
   devices: { load: loadDevices },
   tuya: { load: loadTuya },
+  ac: { load: loadAc, adminOnly: true },
   tv: { load: loadTv, adminOnly: true },
   automations: { load: loadAutomations, adminOnly: true },
   spotify: { load: loadSpotify, adminOnly: true },

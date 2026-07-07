@@ -25,6 +25,7 @@
     <div class="drawer-head">Vistes</div>
     <button class="drawer-item" data-tab="devices" data-title="Dispositius">Dispositius</button>
     <button class="drawer-item" data-tab="tuya" data-title="Calefacció">Calefacció</button>
+    <button class="drawer-item" data-tab="ac" data-title="Aire condicionat">Aire condicionat</button>
     <button class="drawer-item" data-tab="tv" data-title="TV">TV</button>
     <button class="drawer-item" data-tab="automations" data-title="Automatitzacions">Automatitzacions</button>
     <button class="drawer-item" data-tab="spotify" data-title="Spotify">Spotify</button>
@@ -65,6 +66,19 @@
           <span class="badge" id="tuya-badge">…</span>
         </div>
         <div id="tuya-body">
+          <p class="muted">Carregant…</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- AIRE CONDICIONAT (PANASONIC via Broadlink RM4, IR) -->
+    <div class="page" id="page-ac">
+      <section class="card" id="ac-card">
+        <div class="card-header">
+          <h2>Aire condicionat</h2>
+          <span class="badge" id="ac-badge">…</span>
+        </div>
+        <div id="ac-body">
           <p class="muted">Carregant…</p>
         </div>
       </section>
