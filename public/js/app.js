@@ -376,7 +376,17 @@ function buildTvUi() {
     </div>
     <div class="rb-controls">
       <button id="tv-mute" class="btn-small">🔇 Silencia</button>
-      <button id="tv-netflix" class="btn-small">▶ Obrir Netflix</button>
+    </div>
+    <div class="player-devices">
+      <select id="tv-app" aria-label="Obrir una app a la TV">
+        <option value="">📺 Obrir app…</option>
+        <option value="netflix">Netflix</option>
+        <option value="primevideo">Prime Video</option>
+        <option value="disney">Disney+</option>
+        <option value="youtube">YouTube</option>
+        <option value="appletv">Apple TV+</option>
+        <option value="spotify">Spotify</option>
+      </select>
     </div>
     <p id="tv-error" class="error hidden"></p>
   `;
@@ -434,17 +444,22 @@ function buildTvUi() {
     }
   });
 
-  document.getElementById('tv-netflix').addEventListener('click', async (e) => {
-    e.target.disabled = true;
+  const appSelect = document.getElementById('tv-app');
+  appSelect.addEventListener('change', async () => {
+    const appId = appSelect.value;
+    if (!appId) return;
+    const label = appSelect.options[appSelect.selectedIndex].textContent;
+    appSelect.disabled = true;
     try {
       await api('/api/smartthings/launch-app', {
         method: 'POST',
-        body: JSON.stringify({ appId: 'netflix' }),
+        body: JSON.stringify({ appId }),
       });
     } catch (err) {
-      showTvErr(`No s'ha pogut obrir Netflix: ${err.message}`);
+      showTvErr(`No s'ha pogut obrir ${label}: ${err.message}`);
     } finally {
-      e.target.disabled = false;
+      appSelect.disabled = false;
+      appSelect.value = ''; // torna a "Obrir app…"
     }
   });
 }
