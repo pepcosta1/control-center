@@ -451,10 +451,7 @@ function buildTvUi() {
     const label = appSelect.options[appSelect.selectedIndex].textContent;
     appSelect.disabled = true;
     try {
-      await api('/api/smartthings/launch-app', {
-        method: 'POST',
-        body: JSON.stringify({ appId }),
-      });
+      await launchAppEnsuringTvOn(appId);
     } catch (err) {
       showTvErr(`No s'ha pogut obrir ${label}: ${err.message}`);
     } finally {
@@ -505,6 +502,34 @@ async function loadTv() {
   }
 }
 
+// Obre una app a la TV assegurant que estigui encesa: si està apagada,
+// l'encén, espera que arrenqui i llavors llança l'app (amb un reintent).
+async function launchAppEnsuringTvOn(appId) {
+  const launch = () =>
+    api('/api/smartthings/launch-app', { method: 'POST', body: JSON.stringify({ appId }) });
+
+  const data = await api('/api/smartthings/status');
+  if (data.status !== 'connected' || !data.tv) {
+    throw new Error('La TV no està disponible');
+  }
+  if (data.tv.power === true) {
+    // Ja encesa: obre l'app directament
+    await launch();
+    return;
+  }
+
+  // Apagada: encén i espera que arrenqui abans d'obrir l'app
+  await api('/api/smartthings/power', { method: 'POST', body: JSON.stringify({ on: true }) });
+  await new Promise((r) => setTimeout(r, 6000));
+  try {
+    await launch();
+  } catch (err) {
+    // Encara arrencant: un últim reintent després d'esperar una mica més
+    await new Promise((r) => setTimeout(r, 4000));
+    await launch();
+  }
+}
+
 // =====================================================================
 // AUTOMATITZACIONS (escenes: TV + endolls)
 // =====================================================================
@@ -539,12 +564,9 @@ async function runAutomation(auto, btn) {
   const original = btn.textContent;
   btn.textContent = '⏳ Executant…';
   try {
-    // Llança l'app a la TV i encén l'endoll alhora
+    // Encén la TV si cal + obre l'app, i encén l'endoll alhora
     await Promise.all([
-      api('/api/smartthings/launch-app', {
-        method: 'POST',
-        body: JSON.stringify({ appId: auto.app }),
-      }),
+      launchAppEnsuringTvOn(auto.app),
       toggleLampByName(auto.lampMatch, auto.lampOn),
     ]);
     showAutomationResult(`✅ ${auto.label} — fet!`, false);
