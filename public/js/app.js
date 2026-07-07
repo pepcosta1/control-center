@@ -506,6 +506,74 @@ async function loadTv() {
 }
 
 // =====================================================================
+// AUTOMATITZACIONS (escenes: TV + endolls)
+// =====================================================================
+const AUTOMATIONS = [
+  { id: 'netflix-tauleta', label: '🍿 Netflix + Làmpara tauleta', app: 'netflix', lampMatch: 'tauleta', lampOn: true },
+  { id: 'disney-tauleta', label: '🎬 Disney+ + Làmpara tauleta', app: 'disney', lampMatch: 'tauleta', lampOn: true },
+];
+let automationsUiBuilt = false;
+
+function showAutomationResult(msg, isError) {
+  const el = document.getElementById('automations-result');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = isError ? 'error' : 'muted';
+  el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 6000);
+}
+
+// Troba un endoll Meross pel nom (conté el text donat) i el commuta
+async function toggleLampByName(match, on) {
+  const { devices } = await api('/api/meross/devices');
+  const dev = devices.find((d) => (d.name || '').toLowerCase().includes(match.toLowerCase()));
+  if (!dev) throw new Error(`No s'ha trobat cap endoll amb "${match}"`);
+  await api(`/api/meross/devices/${encodeURIComponent(dev.id)}/toggle`, {
+    method: 'POST',
+    body: JSON.stringify({ channel: 0, on }),
+  });
+}
+
+async function runAutomation(auto, btn) {
+  btn.disabled = true;
+  const original = btn.textContent;
+  btn.textContent = '⏳ Executant…';
+  try {
+    // Llança l'app a la TV i encén l'endoll alhora
+    await Promise.all([
+      api('/api/smartthings/launch-app', {
+        method: 'POST',
+        body: JSON.stringify({ appId: auto.app }),
+      }),
+      toggleLampByName(auto.lampMatch, auto.lampOn),
+    ]);
+    showAutomationResult(`✅ ${auto.label} — fet!`, false);
+  } catch (err) {
+    showAutomationResult(`No s'ha pogut completar: ${err.message}`, true);
+  } finally {
+    btn.textContent = original;
+    btn.disabled = false;
+  }
+}
+
+function buildAutomationsUi() {
+  const list = document.getElementById('automations-list');
+  list.innerHTML = '';
+  AUTOMATIONS.forEach((auto) => {
+    const btn = document.createElement('button');
+    btn.className = 'btn-small';
+    btn.textContent = auto.label;
+    btn.addEventListener('click', () => runAutomation(auto, btn));
+    list.appendChild(btn);
+  });
+  automationsUiBuilt = true;
+}
+
+function loadAutomations() {
+  if (!automationsUiBuilt) buildAutomationsUi();
+}
+
+// =====================================================================
 // SPOTIFY
 // =====================================================================
 const spotifyBadge = document.getElementById('spotify-badge');
@@ -1395,6 +1463,7 @@ const TABS = {
   devices: { load: loadDevices },
   tuya: { load: loadTuya },
   tv: { load: loadTv, adminOnly: true },
+  automations: { load: loadAutomations, adminOnly: true },
   spotify: { load: loadSpotify, adminOnly: true },
   shopping: { load: loadShopping },
   deco: { load: loadDeco, adminOnly: true },

@@ -26,6 +26,7 @@
     <button class="drawer-item" data-tab="devices" data-title="Dispositius">Dispositius</button>
     <button class="drawer-item" data-tab="tuya" data-title="Calefacció">Calefacció</button>
     <button class="drawer-item" data-tab="tv" data-title="TV">TV</button>
+    <button class="drawer-item" data-tab="automations" data-title="Automatitzacions">Automatitzacions</button>
     <button class="drawer-item" data-tab="spotify" data-title="Spotify">Spotify</button>
     <button class="drawer-item" data-tab="shopping" data-title="Llista de la compra">Llista de la compra</button>
     <button class="drawer-item" data-tab="deco" data-title="Xarxa">Xarxa</button>
@@ -79,6 +80,18 @@
         <div id="tv-body">
           <p class="muted">Carregant…</p>
         </div>
+      </section>
+    </div>
+
+    <!-- AUTOMATITZACIONS (escenes: TV + endolls) -->
+    <div class="page" id="page-automations">
+      <section class="card" id="automations-card">
+        <div class="card-header">
+          <h2>Automatitzacions</h2>
+        </div>
+        <p class="muted">Escenes que combinen diverses accions amb un sol toc.</p>
+        <div id="automations-list" class="rb-controls"></div>
+        <p id="automations-result" class="muted hidden"></p>
       </section>
     </div>
 
