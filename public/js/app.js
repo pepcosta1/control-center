@@ -1765,12 +1765,12 @@ function loadDevices() {
   loadMeross();
   loadRoomba();
   loadLlum();
+  if (!restrictedMode) loadAc(); // l'API d'AC és només per a admin (403 en mode restringit)
 }
 
 const TABS = {
   devices: { load: loadDevices },
   tuya: { load: loadTuya },
-  ac: { load: loadAc, adminOnly: true },
   tv: { load: loadTv, adminOnly: true },
   automations: { load: loadAutomations, adminOnly: true },
   spotify: { load: loadSpotify, adminOnly: true },
@@ -1822,6 +1822,9 @@ async function start() {
   if (restrictedMode) {
     // Mode limitat: treu les vistes no permeses i el botó de sortir
     document.getElementById('logout-btn').classList.add('hidden');
+    // L'AC viu dins de Dispositius però és només per a admin
+    const acCard = document.getElementById('ac-card');
+    if (acCard) acCard.remove();
     Object.keys(TABS).forEach((id) => {
       if (TABS[id].adminOnly) {
         const page = document.getElementById(`page-${id}`);
