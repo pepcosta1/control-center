@@ -148,6 +148,8 @@ DECO_HOST, DECO_USERNAME, DECO_PASSWORD, DECO_PRESENCE_MAC
 
 ## 8. Paleta de colors i identitat visual
 
+
+
 Tema **"casa de nit"** amb tractament **liquid glass** (estil iOS 26+): verd
 tinta fosc com a color dominant, ambre càlid com a accent (la llum d'una
 làmpada), i panells de vidre esmerilat translúcid sobre un fons atmosfèric.
