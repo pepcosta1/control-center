@@ -2,6 +2,19 @@
 
 Panell personal PWA (iPhone) + backend Express. UI i missatges sempre en **català**.
 
+## Estètica del frontend
+
+Quan generis o modifiquis UI (public/), evita l'estètica genèrica "AI slop" i fes triades distintives:
+
+- **Estil general**: liquid glass, a l'estil iOS/iPhone — superfícies translúcides amb `backdrop-filter: blur()`, vores subtils amb `border: 1px solid rgba(255,255,255,0.15)`, capes que deixen entreveure el fons, reflexos i degradats suaus de llum sobre el vidre. Cantonades molt arrodonides (`border-radius` generós, a l'estil "squircle" d'iOS).
+- **Tipografia**: fonts úniques i interessants, mai Arial/Inter/system-ui genèriques. Si vols mantenir l'aire Apple, es pot considerar SF Pro / -apple-system només en aquest context, però combinat amb algun detall tipogràfic propi per no caure en el look per defecte.
+- **Color**: un color dominant + un accent nítid, com a variables CSS. Res de gradients morats sobre blanc.
+- **Moviment**: animacions CSS suaus per a micro-interaccions (transicions de blur/opacity a l'obrir targetes o modals); un sol page-load ben orquestrat amb `animation-delay` esglaonat val més que efectes escampats.
+- **Fons**: crea atmosfera (gradients en capes, taques de color difuminades darrere els panells de vidre) en lloc de colors sòlids plans — el fons és el que dona vida a l'efecte liquid glass.
+- **Evita**: layouts predictibles, targetes arrodonides genèriques sense l'efecte de vidre, hero centrat amb tres cards, ombres a 0.1 opacity per tot arreu sense el component de transparència/blur.
+
+Interpreta amb criteri propi i fes triades que encaixin amb el context del Centre de Control, no amb el disseny per defecte d'un panell d'admin genèric.
+
 ## Producció (IMPORTANT)
 
 - L'app corre en una **VM d'Oracle** (Ubuntu ARM), no en aquest PC.
@@ -42,3 +55,5 @@ La VM **no** té el repo git: s'actualitza per scp. El `.env` de la VM és la fo
 ## En local (desenvolupament)
 
 `npm run dev` (Node 24 al PC) i http://localhost:3000. El `.env` local existeix i funciona. No deixis servidors locals engegats: producció és la VM.
+
+molt important tu no fasis commits al github aixo ja ho fara l'usuari. Es important que quan acabis de editar o crear, diguis a l'usuari ja pots fer un commit i push si vols.

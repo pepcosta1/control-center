@@ -1,0 +1,220 @@
+{
+  "main": {
+    "id": "93a44be2aacf4a58",
+    "type": "split",
+    "children": [
+      {
+        "id": "f229c0377dce2c60",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "af05102976c337e7",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Vista gráfica"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "6d418003e52530b7",
+    "type": "split",
+    "children": [
+      {
+        "id": "fd4f06cb3fdb25bc",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "32d4365e193dbe07",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Explorador de archivos"
+            }
+          },
+          {
+            "id": "d44ddb4781dacea7",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Buscar"
+            }
+          },
+          {
+            "id": "d4d9a703a6369624",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Marcadores"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "6dcf222fdb7e48d0",
+    "type": "split",
+    "children": [
+      {
+        "id": "63af6d8ffb70e354",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "33abb340b91b37a8",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Enlaces entrantes"
+            }
+          },
+          {
+            "id": "3b803b029e3a5c9b",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Enlaces salientes"
+            }
+          },
+          {
+            "id": "48666432679d00c5",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Etiquetas"
+            }
+          },
+          {
+            "id": "e30f9321ab388747",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "Todas las propiedades"
+            }
+          },
+          {
+            "id": "fa8a99703218f2a1",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Esquema"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Abrir selector rápido": false,
+      "graph:Abrir vista gráfica": false,
+      "canvas:Crear nuevo lienzo": false,
+      "daily-notes:Abrir la nota de hoy": false,
+      "templates:Insertar plantilla": false,
+      "command-palette:Abrir paleta de comandos": false,
+      "bases:Crear nueva base": false
+    }
+  },
+  "active": "af05102976c337e7",
+  "lastOpenFiles": [
+    "graphify-out",
+    "node_modules/fs.realpath/README.md",
+    "node_modules/fs.realpath/package.json",
+    "node_modules/fs.realpath/LICENSE",
+    "node_modules/fs.realpath/index.js",
+    "node_modules/fs.realpath/old.js",
+    "node_modules/fs.realpath",
+    "Sin título.canvas",
+    "CLAUDE.md",
+    "node_modules/mqtt/help/publish.txt",
+    "node_modules/mqtt/help/subscribe.txt",
+    "node_modules/mqtt/help/help.txt",
+    "node_modules/mqtt/help",
+    "node_modules/mqtt/build/tsconfig.build.tsbuildinfo",
+    "node_modules/ajv/README.md",
+    "node_modules/mqtt/LICENSE.md",
+    "node_modules/worker-timers-broker/README.md",
+    "node_modules/websocket-stream/node_modules/readable-stream/GOVERNANCE.md",
+    "node_modules/concat-stream/node_modules/readable-stream/GOVERNANCE.md",
+    "node_modules/@discordjs/ws/README.md",
+    "node_modules/cacheable-request/node_modules/get-stream/readme.md",
+    "node_modules/ip-address/README.md",
+    "node_modules/node-broadlink/README.md",
+    "node_modules/getpass/README.md",
+    "node_modules/bcrypt-pbkdf/README.md",
+    "node_modules/extsprintf/README.md",
+    "node_modules/ecc-jsbn/README.md",
+    "node_modules/clone-response/README.md",
+    "node_modules/jsprim/README.md",
+    "node_modules/jsprim/CONTRIBUTING.md",
+    "node_modules/jsprim/CHANGES.md",
+    "node_modules/ext/docs/promise/limit.md",
+    "node_modules/ext/docs/thenable_/finally.md",
+    "node_modules/ext/docs/string_/capitalize.md",
+    "node_modules/ext/docs/string_/includes.md",
+    "node_modules/ext/docs/string_/camel-to-hyphen.md",
+    "node_modules/ext/docs/object/clear.md",
+    "node_modules/psl/browserstack-logo.svg"
+  ]
+}
