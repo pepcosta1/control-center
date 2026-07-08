@@ -17,7 +17,12 @@
   --success: #82d18d;
   --danger: #ef7f6e;
   --border: #24322a;
-  --radius: 10px;
+  --radius: 18px;
+  /* Liquid glass: vidre esmerilat sobre el fons atmosfèric */
+  --glass: rgba(19, 28, 22, 0.55);
+  --glass-deep: rgba(8, 13, 10, 0.45);
+  --glass-border: rgba(233, 230, 216, 0.12);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   --font-display: "Futura", "Avenir Next Condensed", "Avenir Next", "Trebuchet MS", sans-serif;
   --font-body: "Avenir Next", "Avenir", "Optima", "Gill Sans", "Gill Sans MT", "Trebuchet MS", sans-serif;
   --font-num: "Menlo", "SF Mono", "Consolas", monospace;
@@ -47,10 +52,11 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(120% 85% at 88% -12%, rgba(242, 163, 60, 0.12), transparent 55%),
-    radial-gradient(110% 80% at -8% 108%, rgba(52, 104, 78, 0.28), transparent 62%),
-    repeating-linear-gradient(0deg, transparent 0 27px, rgba(233, 230, 216, 0.022) 27px 28px),
-    repeating-linear-gradient(90deg, transparent 0 27px, rgba(233, 230, 216, 0.022) 27px 28px),
+    radial-gradient(120% 85% at 88% -12%, rgba(242, 163, 60, 0.16), transparent 55%),
+    radial-gradient(60% 40% at 30% 45%, rgba(242, 163, 60, 0.05), transparent 70%),
+    radial-gradient(110% 80% at -8% 108%, rgba(52, 104, 78, 0.34), transparent 62%),
+    repeating-linear-gradient(0deg, transparent 0 27px, rgba(233, 230, 216, 0.025) 27px 28px),
+    repeating-linear-gradient(90deg, transparent 0 27px, rgba(233, 230, 216, 0.025) 27px 28px),
     var(--bg);
 }
 
@@ -112,12 +118,15 @@ input, select { font-family: inherit; }
 .login-card {
   width: 100%;
   max-width: 360px;
-  background: linear-gradient(180deg, rgba(233, 230, 216, 0.035), transparent 45%), var(--card);
-  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(233, 230, 216, 0.04), transparent 45%), var(--glass);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  backdrop-filter: blur(20px) saturate(1.5);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   padding: 2.2rem 1.6rem;
   text-align: center;
   position: relative;
+  box-shadow: var(--glass-highlight), 0 16px 40px rgba(4, 8, 6, 0.4);
   animation: rise-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
@@ -178,7 +187,7 @@ input, select { font-family: inherit; }
 }
 
 .login-card input {
-  background: var(--bg-deep);
+  background: var(--glass-deep);
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text);
@@ -198,10 +207,10 @@ input, select { font-family: inherit; }
   text-transform: uppercase;
   letter-spacing: 0.1em;
   border: none;
-  border-radius: 8px;
+  border-radius: 999px;
   padding: 0.85rem;
   cursor: pointer;
-  box-shadow: 0 4px 18px rgba(242, 163, 60, 0.25);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 4px 18px rgba(242, 163, 60, 0.25);
 }
 
 .login-card button:disabled { opacity: 0.6; }
@@ -214,10 +223,11 @@ input, select { font-family: inherit; }
   padding: 1rem 1.25rem;
   position: sticky;
   top: 0;
-  background: rgba(13, 20, 16, 0.88);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border);
+  background: rgba(13, 20, 16, 0.55);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  backdrop-filter: blur(24px) saturate(1.6);
+  border-bottom: 1px solid rgba(233, 230, 216, 0.09);
+  box-shadow: inset 0 -1px 0 rgba(4, 8, 6, 0.3);
   z-index: 10;
   animation: bar-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
@@ -234,13 +244,14 @@ input, select { font-family: inherit; }
 }
 
 .btn-ghost {
-  background: transparent;
-  border: 1px solid var(--border);
+  background: rgba(233, 230, 216, 0.05);
+  border: 1px solid var(--glass-border);
   color: var(--muted);
-  border-radius: 8px;
-  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
   font-size: 0.85rem;
   cursor: pointer;
+  box-shadow: var(--glass-highlight);
 }
 
 .btn-ghost:hover { color: var(--accent); border-color: var(--accent); }
@@ -301,8 +312,11 @@ input, select { font-family: inherit; }
   bottom: 0;
   width: 250px;
   max-width: 80vw;
-  background: linear-gradient(180deg, rgba(233, 230, 216, 0.03), transparent 30%), var(--card);
-  border-right: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(233, 230, 216, 0.04), transparent 30%), rgba(13, 20, 16, 0.62);
+  -webkit-backdrop-filter: blur(26px) saturate(1.6);
+  backdrop-filter: blur(26px) saturate(1.6);
+  border-right: 1px solid var(--glass-border);
+  box-shadow: var(--glass-highlight), 8px 0 32px rgba(4, 8, 6, 0.35);
   z-index: 40;
   transform: translateX(-100%);
   transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
@@ -361,13 +375,15 @@ input, select { font-family: inherit; }
   border-left-color: var(--accent);
   color: var(--accent);
   font-weight: 600;
-  background: var(--bg-deep);
+  background: var(--glass-deep);
 }
 
 .drawer-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(4, 8, 6, 0.55);
+  background: rgba(4, 8, 6, 0.4);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   z-index: 30;
   opacity: 0;
   pointer-events: none;
@@ -378,11 +394,14 @@ input, select { font-family: inherit; }
 
 /* --- Panells ------------------------------------------------- */
 .card {
-  background: linear-gradient(180deg, rgba(233, 230, 216, 0.03), transparent 42%), var(--card);
-  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(233, 230, 216, 0.04), transparent 42%), var(--glass);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   padding: 1.1rem 1.2rem;
   position: relative;
+  box-shadow: var(--glass-highlight), 0 12px 32px rgba(4, 8, 6, 0.35);
 }
 
 /* Pestanya ambre a la vora superior de cada panell */
@@ -418,7 +437,8 @@ input, select { font-family: inherit; }
   font-weight: 600;
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
-  background: var(--border);
+  background: rgba(233, 230, 216, 0.08);
+  border: 1px solid rgba(233, 230, 216, 0.08);
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -436,10 +456,11 @@ input, select { font-family: inherit; }
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  background: var(--bg-deep);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background: var(--glass-deep);
+  border: 1px solid rgba(233, 230, 216, 0.08);
+  border-radius: 14px;
   padding: 0.75rem 0.9rem;
+  box-shadow: var(--glass-highlight);
   transition: border-color 0.15s ease;
 }
 
@@ -472,7 +493,8 @@ input, select { font-family: inherit; }
 .slider {
   position: absolute;
   inset: 0;
-  background: var(--border);
+  background: rgba(233, 230, 216, 0.14);
+  box-shadow: var(--glass-highlight);
   border-radius: 999px;
   transition: background 0.25s;
   cursor: pointer;
@@ -559,7 +581,7 @@ input, select { font-family: inherit; }
   padding: 0.5rem;
   border-radius: 8px;
   margin-bottom: 0.75rem;
-  background: var(--bg-deep);
+  background: var(--glass-deep);
   border: 1px solid var(--border);
 }
 
@@ -622,8 +644,8 @@ input, select { font-family: inherit; }
 }
 
 .btn-round {
-  background: var(--bg-deep);
-  border: 1px solid var(--border);
+  background: rgba(233, 230, 216, 0.07);
+  border: 1px solid var(--glass-border);
   color: var(--text);
   border-radius: 50%;
   width: 44px;
@@ -633,6 +655,7 @@ input, select { font-family: inherit; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-shadow: var(--glass-highlight);
 }
 
 .btn-round .icon { width: 20px; height: 20px; }
@@ -673,7 +696,7 @@ input, select { font-family: inherit; }
 
 .player-devices select {
   width: 100%;
-  background: var(--bg-deep);
+  background: var(--glass-deep);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 8px;
@@ -689,7 +712,7 @@ input, select { font-family: inherit; }
 .player-playlists select {
   flex: 1;
   min-width: 0;
-  background: var(--bg-deep);
+  background: var(--glass-deep);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 8px;
@@ -698,14 +721,15 @@ input, select { font-family: inherit; }
 }
 
 .btn-small {
-  background: var(--bg-deep);
-  border: 1px solid var(--border);
+  background: rgba(233, 230, 216, 0.07);
+  border: 1px solid var(--glass-border);
   color: var(--text);
-  border-radius: 8px;
-  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  padding: 0.5rem 0.95rem;
   font-size: 0.85rem;
   cursor: pointer;
   flex-shrink: 0;
+  box-shadow: var(--glass-highlight);
 }
 
 .btn-small:hover { border-color: var(--accent); color: var(--accent); }
@@ -720,7 +744,7 @@ input, select { font-family: inherit; }
 .sp-search input {
   flex: 1;
   min-width: 0;
-  background: var(--bg-deep);
+  background: var(--glass-deep);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 8px;
@@ -731,7 +755,7 @@ input, select { font-family: inherit; }
 .sp-search input:focus { outline: 2px solid var(--accent); border-color: transparent; }
 
 .sp-search select {
-  background: var(--bg-deep);
+  background: var(--glass-deep);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 8px;
@@ -832,7 +856,7 @@ details[open] .recent-title { color: var(--accent); }
 .shop-form input {
   flex: 1;
   min-width: 0;
-  background: var(--bg-deep);
+  background: var(--glass-deep);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 8px;
@@ -905,7 +929,9 @@ details[open] .recent-title { color: var(--accent); }
 .lyrics-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(4, 8, 6, 0.7);
+  background: rgba(4, 8, 6, 0.5);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -915,8 +941,11 @@ details[open] .recent-title { color: var(--accent); }
 }
 
 .lyrics-modal {
-  background: linear-gradient(180deg, rgba(233, 230, 216, 0.03), transparent 30%), var(--card);
-  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(233, 230, 216, 0.04), transparent 30%), var(--glass);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  backdrop-filter: blur(22px) saturate(1.5);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-highlight), 0 16px 48px rgba(4, 8, 6, 0.45);
   border-radius: var(--radius);
   width: 100%;
   max-width: 480px;
@@ -973,6 +1002,12 @@ details[open] .recent-title { color: var(--accent); }
   text-decoration: none;
   border-radius: 8px;
   padding: 0.8rem;
+}
+
+/* Sense backdrop-filter (navegadors antics): vidre opac */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .card, .login-card, .lyrics-modal { background: var(--card); }
+  .topbar, .drawer { background: rgba(13, 20, 16, 0.96); }
 }
 
 /* --- Accessibilitat: sense moviment si l'usuari ho demana --- */
