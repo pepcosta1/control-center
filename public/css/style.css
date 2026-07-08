@@ -5,27 +5,65 @@
    ============================================================ */
 
 :root {
+  /* Triplets RGB per poder tenyir el vidre amb alfa per mode (clar/fosc) */
+  --ink-rgb: 233, 230, 216;      /* to clar: textos translúcids, vores, retícula */
+  --bar-rgb: 13, 20, 16;         /* tinta del vidre de topbar i drawer */
+  --shadow-rgb: 4, 8, 6;         /* to de les ombres */
+  --glow-rgb: 242, 163, 60;      /* ambre de l'atmosfera */
+  --depth-rgb: 52, 104, 78;      /* verd de profunditat */
   --bg: #0d1410;
   --bg-deep: #080d0a;
   --card: #131c16;
-  --card-hover: rgba(233, 230, 216, 0.06);
+  --card-hover: rgba(var(--ink-rgb), 0.06);
   --text: #e9e6d8;
   --muted: #93a396;
   --accent: #f2a33c;
-  --accent-soft: rgba(242, 163, 60, 0.14);
+  --accent-soft: rgba(var(--glow-rgb), 0.14);
   --accent-ink: #241503;
   --success: #82d18d;
   --danger: #ef7f6e;
   --border: #24322a;
-  --radius: 18px;
+  --radius: 22px;
   /* Liquid glass: vidre esmerilat sobre el fons atmosfèric */
   --glass: rgba(19, 28, 22, 0.55);
   --glass-deep: rgba(8, 13, 10, 0.45);
-  --glass-border: rgba(233, 230, 216, 0.12);
-  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(var(--ink-rgb), 0.12);
+  /* Ribet de vidre gruixut: llum a dalt i a l'esquerra, ombra a baix */
+  --glass-highlight:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 1px 0 0 rgba(255, 255, 255, 0.04),
+    inset 0 -1px 0 rgba(var(--shadow-rgb), 0.25);
   --font-display: "Futura", "Avenir Next Condensed", "Avenir Next", "Trebuchet MS", sans-serif;
   --font-body: "Avenir Next", "Avenir", "Optima", "Gill Sans", "Gill Sans MT", "Trebuchet MS", sans-serif;
   --font-num: "Menlo", "SF Mono", "Consolas", monospace;
+}
+
+/* Mode clar: mateixa casa, de dia. El vidre passa a tenyir-se de blanc càlid
+   i la tinta translúcida s'inverteix cap a verd fosc. */
+@media (prefers-color-scheme: light) {
+  :root {
+    --ink-rgb: 31, 45, 36;
+    --bar-rgb: 250, 247, 236;
+    --shadow-rgb: 82, 90, 74;
+    --glow-rgb: 224, 138, 25;
+    --depth-rgb: 116, 156, 128;
+    --bg: #f0ebdb;
+    --bg-deep: #e6dfc9;
+    --card: #faf7ec;
+    --text: #22301f;
+    --muted: #5e6f60;
+    --accent: #a86a0a;
+    --accent-ink: #fff8ec;
+    --success: #2e7d43;
+    --danger: #bb4634;
+    --border: #cfc8b2;
+    --glass: rgba(252, 250, 242, 0.55);
+    --glass-deep: rgba(255, 255, 255, 0.5);
+    --glass-highlight:
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      inset 1px 0 0 rgba(255, 255, 255, 0.35),
+      inset 0 -1px 0 rgba(var(--shadow-rgb), 0.12);
+  }
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -52,11 +90,11 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(120% 85% at 88% -12%, rgba(242, 163, 60, 0.16), transparent 55%),
-    radial-gradient(60% 40% at 30% 45%, rgba(242, 163, 60, 0.05), transparent 70%),
-    radial-gradient(110% 80% at -8% 108%, rgba(52, 104, 78, 0.34), transparent 62%),
-    repeating-linear-gradient(0deg, transparent 0 27px, rgba(233, 230, 216, 0.025) 27px 28px),
-    repeating-linear-gradient(90deg, transparent 0 27px, rgba(233, 230, 216, 0.025) 27px 28px),
+    radial-gradient(120% 85% at 88% -12%, rgba(var(--glow-rgb), 0.16), transparent 55%),
+    radial-gradient(60% 40% at 30% 45%, rgba(var(--glow-rgb), 0.05), transparent 70%),
+    radial-gradient(110% 80% at -8% 108%, rgba(var(--depth-rgb), 0.34), transparent 62%),
+    repeating-linear-gradient(0deg, transparent 0 27px, rgba(var(--ink-rgb), 0.025) 27px 28px),
+    repeating-linear-gradient(90deg, transparent 0 27px, rgba(var(--ink-rgb), 0.025) 27px 28px),
     var(--bg);
 }
 
@@ -67,15 +105,19 @@ body::before {
 button { font-family: inherit; }
 input, select { font-family: inherit; }
 
-/* Micro-interacció compartida: tacte físic en prémer */
+/* Micro-interacció compartida: tacte físic en prémer i brillantor en tocar */
 .btn-small, .btn-round, .btn-ghost, .btn-lyrics, .btn-connect,
 .login-card button, .recent-row, .drawer-item {
-  transition: transform 0.12s ease, background 0.15s ease, color 0.15s ease,
-              border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s cubic-bezier(0.34, 1.3, 0.64, 1), background 0.15s ease,
+              color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease,
+              filter 0.15s ease;
 }
 
-.btn-small:active, .btn-round:active, .btn-ghost:active,
-.login-card button:active, .recent-row:active { transform: scale(0.96); }
+.btn-small:hover, .btn-round:hover, .btn-ghost:hover, .btn-connect:hover,
+.login-card button:hover { filter: brightness(1.12); }
+
+.btn-small:active, .btn-round:active, .btn-ghost:active, .btn-connect:active,
+.login-card button:active, .recent-row:active { transform: scale(0.96); filter: brightness(1.2); }
 
 /* Icones SVG (substitueixen els emojis als controls) */
 .icon {
@@ -118,7 +160,7 @@ input, select { font-family: inherit; }
 .login-card {
   width: 100%;
   max-width: 360px;
-  background: linear-gradient(180deg, rgba(233, 230, 216, 0.04), transparent 45%), var(--glass);
+  background: linear-gradient(180deg, rgba(var(--ink-rgb), 0.04), transparent 45%), var(--glass);
   -webkit-backdrop-filter: blur(20px) saturate(1.5);
   backdrop-filter: blur(20px) saturate(1.5);
   border: 1px solid var(--glass-border);
@@ -126,7 +168,7 @@ input, select { font-family: inherit; }
   padding: 2.2rem 1.6rem;
   text-align: center;
   position: relative;
-  box-shadow: var(--glass-highlight), 0 16px 40px rgba(4, 8, 6, 0.4);
+  box-shadow: var(--glass-highlight), 0 16px 40px rgba(var(--shadow-rgb), 0.4);
   animation: rise-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
@@ -153,7 +195,7 @@ input, select { font-family: inherit; }
   justify-content: center;
   color: var(--accent);
   background: var(--accent-soft);
-  border: 1px solid rgba(242, 163, 60, 0.35);
+  border: 1px solid rgba(var(--glow-rgb), 0.35);
   border-radius: 50%;
   animation: fade-in 0.6s 0.15s ease backwards;
 }
@@ -210,7 +252,7 @@ input, select { font-family: inherit; }
   border-radius: 999px;
   padding: 0.85rem;
   cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 4px 18px rgba(242, 163, 60, 0.25);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 4px 18px rgba(var(--glow-rgb), 0.25);
 }
 
 .login-card button:disabled { opacity: 0.6; }
@@ -223,11 +265,11 @@ input, select { font-family: inherit; }
   padding: 1rem 1.25rem;
   position: sticky;
   top: 0;
-  background: rgba(13, 20, 16, 0.55);
+  background: rgba(var(--bar-rgb), 0.55);
   -webkit-backdrop-filter: blur(24px) saturate(1.6);
   backdrop-filter: blur(24px) saturate(1.6);
-  border-bottom: 1px solid rgba(233, 230, 216, 0.09);
-  box-shadow: inset 0 -1px 0 rgba(4, 8, 6, 0.3);
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.09);
+  box-shadow: inset 0 -1px 0 rgba(var(--shadow-rgb), 0.3);
   z-index: 10;
   animation: bar-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
@@ -244,7 +286,7 @@ input, select { font-family: inherit; }
 }
 
 .btn-ghost {
-  background: rgba(233, 230, 216, 0.05);
+  background: rgba(var(--ink-rgb), 0.05);
   border: 1px solid var(--glass-border);
   color: var(--muted);
   border-radius: 999px;
@@ -312,11 +354,11 @@ input, select { font-family: inherit; }
   bottom: 0;
   width: 250px;
   max-width: 80vw;
-  background: linear-gradient(180deg, rgba(233, 230, 216, 0.04), transparent 30%), rgba(13, 20, 16, 0.62);
+  background: linear-gradient(180deg, rgba(var(--ink-rgb), 0.04), transparent 30%), rgba(var(--bar-rgb), 0.62);
   -webkit-backdrop-filter: blur(26px) saturate(1.6);
   backdrop-filter: blur(26px) saturate(1.6);
   border-right: 1px solid var(--glass-border);
-  box-shadow: var(--glass-highlight), 8px 0 32px rgba(4, 8, 6, 0.35);
+  box-shadow: var(--glass-highlight), 8px 0 32px rgba(var(--shadow-rgb), 0.35);
   z-index: 40;
   transform: translateX(-100%);
   transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
@@ -381,7 +423,7 @@ input, select { font-family: inherit; }
 .drawer-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(4, 8, 6, 0.4);
+  background: rgba(var(--shadow-rgb), 0.4);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   z-index: 30;
@@ -394,14 +436,14 @@ input, select { font-family: inherit; }
 
 /* --- Panells ------------------------------------------------- */
 .card {
-  background: linear-gradient(180deg, rgba(233, 230, 216, 0.04), transparent 42%), var(--glass);
+  background: linear-gradient(180deg, rgba(var(--ink-rgb), 0.04), transparent 42%), var(--glass);
   -webkit-backdrop-filter: blur(18px) saturate(1.5);
   backdrop-filter: blur(18px) saturate(1.5);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   padding: 1.1rem 1.2rem;
   position: relative;
-  box-shadow: var(--glass-highlight), 0 12px 32px rgba(4, 8, 6, 0.35);
+  box-shadow: var(--glass-highlight), 0 12px 32px rgba(var(--shadow-rgb), 0.35);
 }
 
 /* Pestanya ambre a la vora superior de cada panell */
@@ -414,6 +456,17 @@ input, select { font-family: inherit; }
   height: 3px;
   background: var(--accent);
   border-radius: 0 0 3px 3px;
+  z-index: 1;
+}
+
+/* Reflex especular: la llum rebota a la cara superior del vidre */
+.card::after, .login-card::after, .lyrics-modal::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02) 32%, transparent 55%);
 }
 
 .card-header {
@@ -437,8 +490,8 @@ input, select { font-family: inherit; }
   font-weight: 600;
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
-  background: rgba(233, 230, 216, 0.08);
-  border: 1px solid rgba(233, 230, 216, 0.08);
+  background: rgba(var(--ink-rgb), 0.08);
+  border: 1px solid rgba(var(--ink-rgb), 0.08);
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -457,14 +510,14 @@ input, select { font-family: inherit; }
   justify-content: space-between;
   gap: 0.75rem;
   background: var(--glass-deep);
-  border: 1px solid rgba(233, 230, 216, 0.08);
+  border: 1px solid rgba(var(--ink-rgb), 0.08);
   border-radius: 14px;
   padding: 0.75rem 0.9rem;
   box-shadow: var(--glass-highlight);
   transition: border-color 0.15s ease;
 }
 
-.device-row:hover { border-color: rgba(242, 163, 60, 0.35); }
+.device-row:hover { border-color: rgba(var(--glow-rgb), 0.35); }
 
 .device-info { min-width: 0; }
 
@@ -493,7 +546,7 @@ input, select { font-family: inherit; }
 .slider {
   position: absolute;
   inset: 0;
-  background: rgba(233, 230, 216, 0.14);
+  background: rgba(var(--ink-rgb), 0.14);
   box-shadow: var(--glass-highlight);
   border-radius: 999px;
   transition: background 0.25s;
@@ -514,7 +567,7 @@ input, select { font-family: inherit; }
 
 .switch input:checked + .slider {
   background: var(--accent);
-  box-shadow: 0 0 12px rgba(242, 163, 60, 0.35);
+  box-shadow: 0 0 12px rgba(var(--glow-rgb), 0.35);
 }
 .switch input:checked + .slider::before { transform: translateX(22px); }
 .switch input:disabled + .slider { opacity: 0.4; cursor: not-allowed; }
@@ -589,7 +642,7 @@ input, select { font-family: inherit; }
 .presence-away { color: var(--muted); }
 
 .deco-client { cursor: default; }
-.deco-client:hover { background: transparent; border-color: rgba(233, 230, 216, 0.08); }
+.deco-client:hover { background: transparent; border-color: rgba(var(--ink-rgb), 0.08); }
 
 /* --- Reproductor Spotify --- */
 .player {
@@ -605,7 +658,7 @@ input, select { font-family: inherit; }
   border-radius: 8px;
   object-fit: cover;
   flex-shrink: 0;
-  box-shadow: 0 4px 14px rgba(4, 8, 6, 0.6);
+  box-shadow: 0 4px 14px rgba(var(--shadow-rgb), 0.6);
 }
 
 .player-track { min-width: 0; }
@@ -644,7 +697,7 @@ input, select { font-family: inherit; }
 }
 
 .btn-round {
-  background: rgba(233, 230, 216, 0.07);
+  background: rgba(var(--ink-rgb), 0.07);
   border: 1px solid var(--glass-border);
   color: var(--text);
   border-radius: 50%;
@@ -670,7 +723,7 @@ input, select { font-family: inherit; }
   background: var(--accent);
   color: var(--accent-ink);
   border: none;
-  box-shadow: 0 4px 18px rgba(242, 163, 60, 0.3);
+  box-shadow: 0 4px 18px rgba(var(--glow-rgb), 0.3);
 }
 
 .btn-big:hover { color: var(--accent-ink); }
@@ -721,7 +774,7 @@ input, select { font-family: inherit; }
 }
 
 .btn-small {
-  background: rgba(233, 230, 216, 0.07);
+  background: rgba(var(--ink-rgb), 0.07);
   border: 1px solid var(--glass-border);
   color: var(--text);
   border-radius: 999px;
@@ -803,7 +856,7 @@ details[open] .recent-title { color: var(--accent); }
   gap: 0.6rem;
   padding: 0.45rem 0.4rem;
   border: none;
-  border-bottom: 1px solid rgba(233, 230, 216, 0.08);
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.08);
   background: transparent;
   color: var(--text);
   text-align: left;
@@ -874,7 +927,7 @@ details[open] .recent-title { color: var(--accent); }
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.4rem 0.3rem;
-  border-bottom: 1px solid rgba(233, 230, 216, 0.08);
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.08);
 }
 
 .shop-row:last-child { border-bottom: none; }
@@ -929,7 +982,7 @@ details[open] .recent-title { color: var(--accent); }
 .lyrics-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(4, 8, 6, 0.5);
+  background: rgba(var(--shadow-rgb), 0.5);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   display: flex;
@@ -941,11 +994,12 @@ details[open] .recent-title { color: var(--accent); }
 }
 
 .lyrics-modal {
-  background: linear-gradient(180deg, rgba(233, 230, 216, 0.04), transparent 30%), var(--glass);
+  position: relative;
+  background: linear-gradient(180deg, rgba(var(--ink-rgb), 0.04), transparent 30%), var(--glass);
   -webkit-backdrop-filter: blur(22px) saturate(1.5);
   backdrop-filter: blur(22px) saturate(1.5);
   border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-highlight), 0 16px 48px rgba(4, 8, 6, 0.45);
+  box-shadow: var(--glass-highlight), 0 16px 48px rgba(var(--shadow-rgb), 0.45);
   border-radius: var(--radius);
   width: 100%;
   max-width: 480px;
@@ -962,7 +1016,7 @@ details[open] .recent-title { color: var(--accent); }
   justify-content: space-between;
   gap: 0.75rem;
   padding: 1rem 1.1rem;
-  border-bottom: 1px solid rgba(233, 230, 216, 0.08);
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.08);
 }
 
 .lyrics-body {
@@ -1007,7 +1061,18 @@ details[open] .recent-title { color: var(--accent); }
 /* Sense backdrop-filter (navegadors antics): vidre opac */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .card, .login-card, .lyrics-modal { background: var(--card); }
-  .topbar, .drawer { background: rgba(13, 20, 16, 0.96); }
+  .topbar, .drawer { background: rgba(var(--bar-rgb), 0.96); }
+}
+
+/* Accessibilitat: reduir transparència si l'usuari ho demana al sistema */
+@media (prefers-reduced-transparency: reduce) {
+  .card, .login-card, .lyrics-modal, .topbar, .drawer, .drawer-overlay, .lyrics-overlay {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .card, .login-card, .lyrics-modal { background: var(--card); }
+  .topbar, .drawer { background: rgb(var(--bar-rgb)); }
+  .card::after, .login-card::after, .lyrics-modal::after { background: none; }
 }
 
 /* --- Accessibilitat: sense moviment si l'usuari ho demana --- */

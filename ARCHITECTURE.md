@@ -155,6 +155,15 @@ làmpada), i panells de vidre esmerilat translúcid sobre un fons atmosfèric.
 Tots els valors viuen com a variables CSS a `public/css/style.css` (`:root`).
 **Fes servir sempre les variables**, mai els hex directes.
 
+Hi ha **mode clar i fosc** (`prefers-color-scheme`): el fosc és el canònic
+("casa de nit", valors de sota); el clar ("casa de dia") redefineix les
+variables sobre crema càlid `#f0ebdb` amb tinta verda fosca `#22301f` i
+ambre enfosquit `#a86a0a`. Els tons translúcids es construeixen amb
+triplets RGB (`--ink-rgb`, `--bar-rgb`, `--glow-rgb`, `--depth-rgb`,
+`--shadow-rgb`) perquè el vidre es tenyeixi per mode. Accessibilitat:
+`prefers-reduced-transparency` torna el vidre opac i
+`prefers-reduced-motion` atura les animacions.
+
 ### Colors base
 
 | Variable | Valor | Ús |
