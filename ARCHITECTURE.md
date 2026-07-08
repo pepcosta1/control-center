@@ -146,7 +146,72 @@ ROOMBA_IP, ROOMBA_BLID, ROOMBA_PASSWORD
 DECO_HOST, DECO_USERNAME, DECO_PASSWORD, DECO_PRESENCE_MAC
 ```
 
-## 8. Estat conegut i limitacions
+## 8. Paleta de colors i identitat visual
+
+Tema **"casa de nit"** amb tractament **liquid glass** (estil iOS 26+): verd
+tinta fosc com a color dominant, ambre càlid com a accent (la llum d'una
+làmpada), i panells de vidre esmerilat translúcid sobre un fons atmosfèric.
+
+Tots els valors viuen com a variables CSS a `public/css/style.css` (`:root`).
+**Fes servir sempre les variables**, mai els hex directes.
+
+### Colors base
+
+| Variable | Valor | Ús |
+|---|---|---|
+| `--bg` | `#0d1410` | Fons general (també `theme-color` als HTML i al manifest) |
+| `--bg-deep` | `#080d0a` | Fons més profund (fallbacks, ombres) |
+| `--card` | `#131c16` | Panell opac (fallback sense `backdrop-filter`) |
+| `--card-hover` | `#1a2620` | Hover de files i ítems |
+| `--text` | `#e9e6d8` | Text principal (càlid, mai blanc pur) |
+| `--muted` | `#93a396` | Text secundari |
+| `--border` | `#24322a` | Vores d'elements opacs |
+
+### Accent i estats
+
+| Variable | Valor | Ús |
+|---|---|---|
+| `--accent` | `#f2a33c` | Ambre: botons principals, actius, pestanyeta dels panells, icona |
+| `--accent-soft` | `rgba(242,163,60,0.14)` | Fons suau ambre (anell del logo) |
+| `--accent-ink` | `#241503` | Text fosc sobre fons ambre |
+| `--success` | `#82d18d` | Verd: connectat, encès, presència |
+| `--danger` | `#ef7f6e` | Coral: errors, desconnectat, esborrar |
+
+### Liquid glass
+
+| Variable | Valor | Ús |
+|---|---|---|
+| `--glass` | `rgba(19,28,22,0.55)` | Vidre dels panells (+ `backdrop-filter: blur(18-26px) saturate(1.5)`) |
+| `--glass-deep` | `rgba(8,13,10,0.45)` | Vidre fosc interior: files de dispositius, inputs, selects |
+| `--glass-border` | `rgba(233,230,216,0.12)` | Vora lluminosa del vidre |
+| `--glass-highlight` | `inset 0 1px 0 rgba(255,255,255,0.08)` | Reflex de llum a la vora superior |
+| `--radius` | `18px` | Radi general (botons petits: càpsula `999px`) |
+
+### Fons atmosfèric (body::before)
+
+- Glow ambre a dalt a la dreta: `rgba(242,163,60,0.16)` radial
+- Profunditat verda a baix a l'esquerra: `rgba(52,104,78,0.34)` radial (base `#34684e`)
+- Retícula tècnica: línies `rgba(233,230,216,0.025)` cada 28px
+
+El fons és el que dona vida al vidre: si es canvia, el liquid glass perd l'efecte.
+
+### Tipografia
+
+| Variable | Stack | Ús |
+|---|---|---|
+| `--font-display` | Futura, Avenir Next Condensed, Trebuchet MS | Títols i etiquetes (majúscules + letter-spacing) |
+| `--font-body` | Avenir Next, Optima, Gill Sans | Text general |
+| `--font-num` | Menlo, SF Mono, Consolas | Xifres tabulars (temperatura, bateria, temps) |
+
+### Excepcions conscients
+
+- `#1db954` — verd de marca de Spotify, només al botó "Connecta amb Spotify".
+- Emojis de contingut (🔵 colors de la llum, 🍿 escenes, 🔋 bateria) es mantenen;
+  els **controls** usen icones SVG amb `currentColor` (helper `icon()` a `app.js`).
+- La icona de la PWA i els favicons (`public/icons/`) usen aquests mateixos
+  colors: fons `#0d1410`, caseta `#f2a33c`, glow ambre i verd `#34684e`.
+
+## 9. Estat conegut i limitacions
 
 - **Deco**: aparcat — la VM del núvol no arriba a la LAN de casa (timeout).
   Pendent d'una Raspberry Pi com a subnet router de Tailscale.

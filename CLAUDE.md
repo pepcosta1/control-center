@@ -8,7 +8,7 @@ Quan generis o modifiquis UI (public/), evita l'estètica genèrica "AI slop" i 
 
 - **Estil general**: liquid glass, a l'estil iOS/iPhone — superfícies translúcides amb `backdrop-filter: blur()`, vores subtils amb `border: 1px solid rgba(255,255,255,0.15)`, capes que deixen entreveure el fons, reflexos i degradats suaus de llum sobre el vidre. Cantonades molt arrodonides (`border-radius` generós, a l'estil "squircle" d'iOS).
 - **Tipografia**: fonts úniques i interessants, mai Arial/Inter/system-ui genèriques. Si vols mantenir l'aire Apple, es pot considerar SF Pro / -apple-system només en aquest context, però combinat amb algun detall tipogràfic propi per no caure en el look per defecte.
-- **Color**: un color dominant + un accent nítid, com a variables CSS. Res de gradients morats sobre blanc.
+- **Color**: un color dominant + un accent nítid, com a variables CSS. Res de gradients morats sobre blanc. **La paleta canònica del projecte (tema "casa de nit": verd tinta `--bg` + ambre `--accent`, variables glass, tipografia) està documentada a `ARCHITECTURE.md` §8 — fes servir sempre aquestes variables, no inventis colors nous.**
 - **Moviment**: animacions CSS suaus per a micro-interaccions (transicions de blur/opacity a l'obrir targetes o modals); un sol page-load ben orquestrat amb `animation-delay` esglaonat val més que efectes escampats.
 - **Fons**: crea atmosfera (gradients en capes, taques de color difuminades darrere els panells de vidre) en lloc de colors sòlids plans — el fons és el que dona vida a l'efecte liquid glass.
 - **Evita**: layouts predictibles, targetes arrodonides genèriques sense l'efecte de vidre, hero centrat amb tres cards, ombres a 0.1 opacity per tot arreu sense el component de transparència/blur.
