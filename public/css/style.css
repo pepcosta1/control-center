@@ -8,7 +8,7 @@
   --bg: #0d1410;
   --bg-deep: #080d0a;
   --card: #131c16;
-  --card-hover: #1a2620;
+  --card-hover: rgba(233, 230, 216, 0.06);
   --text: #e9e6d8;
   --muted: #93a396;
   --accent: #f2a33c;
@@ -188,8 +188,8 @@ input, select { font-family: inherit; }
 
 .login-card input {
   background: var(--glass-deep);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
   color: var(--text);
   font-size: 1rem;
   padding: 0.75rem;
@@ -582,14 +582,14 @@ input, select { font-family: inherit; }
   border-radius: 8px;
   margin-bottom: 0.75rem;
   background: var(--glass-deep);
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
 }
 
 .presence-home { color: var(--success); }
 .presence-away { color: var(--muted); }
 
 .deco-client { cursor: default; }
-.deco-client:hover { background: transparent; border-color: var(--border); }
+.deco-client:hover { background: transparent; border-color: rgba(233, 230, 216, 0.08); }
 
 /* --- Reproductor Spotify --- */
 .player {
@@ -697,9 +697,9 @@ input, select { font-family: inherit; }
 .player-devices select {
   width: 100%;
   background: var(--glass-deep);
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   color: var(--text);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 0.5rem;
   font-size: 0.9rem;
 }
@@ -713,9 +713,9 @@ input, select { font-family: inherit; }
   flex: 1;
   min-width: 0;
   background: var(--glass-deep);
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   color: var(--text);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 0.5rem;
   font-size: 0.9rem;
 }
@@ -745,9 +745,9 @@ input, select { font-family: inherit; }
   flex: 1;
   min-width: 0;
   background: var(--glass-deep);
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   color: var(--text);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 0.5rem 0.7rem;
   font-size: 0.95rem;
 }
@@ -756,9 +756,9 @@ input, select { font-family: inherit; }
 
 .sp-search select {
   background: var(--glass-deep);
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   color: var(--text);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 0.5rem 0.3rem;
   font-size: 0.85rem;
   flex-shrink: 0;
@@ -803,7 +803,7 @@ details[open] .recent-title { color: var(--accent); }
   gap: 0.6rem;
   padding: 0.45rem 0.4rem;
   border: none;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(233, 230, 216, 0.08);
   background: transparent;
   color: var(--text);
   text-align: left;
@@ -857,9 +857,9 @@ details[open] .recent-title { color: var(--accent); }
   flex: 1;
   min-width: 0;
   background: var(--glass-deep);
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   color: var(--text);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 0.6rem 0.75rem;
   font-size: 1rem;
 }
@@ -874,7 +874,7 @@ details[open] .recent-title { color: var(--accent); }
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.4rem 0.3rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(233, 230, 216, 0.08);
 }
 
 .shop-row:last-child { border-bottom: none; }
@@ -962,7 +962,7 @@ details[open] .recent-title { color: var(--accent); }
   justify-content: space-between;
   gap: 0.75rem;
   padding: 1rem 1.1rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(233, 230, 216, 0.08);
 }
 
 .lyrics-body {
@@ -1000,7 +1000,7 @@ details[open] .recent-title { color: var(--accent); }
   color: #fff;
   font-weight: 700;
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 999px;
   padding: 0.8rem;
 }
 
