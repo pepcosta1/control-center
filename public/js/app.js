@@ -338,7 +338,7 @@ async function loadRoomba() {
 }
 
 // =====================================================================
-// LLUM DE CRISTALL (IR via Broadlink RM4)
+// LLUM DE CRISTALL (RF 433MHz via Broadlink RM4 pro)
 // =====================================================================
 const llumBadge = document.getElementById('llum-badge');
 const llumBody = document.getElementById('llum-body');
@@ -346,7 +346,20 @@ let llumCommandsKey = null; // per no redibuixar si la llista no ha canviat
 let llumSending = false;
 
 // Nom de comanda → etiqueta bonica del botó
+const LLUM_LABELS = {
+  power_toggle: '⏻ Tot',
+  light_toggle: '💡 Llum',
+  brightness_up: '🔆 Més llum',
+  brightness_down: '🔅 Menys llum',
+  color_temp_warm: '🕯️ Càlida',
+  color_temp_cool: '❄️ Freda',
+  night_mode_warm: '🌙 Nit',
+  sleep_mode: '😴 Son',
+  confirm_select: '✔️ Aparella',
+};
+
 function llumLabel(cmd) {
+  if (LLUM_LABELS[cmd]) return LLUM_LABELS[cmd];
   const name = cmd.replace(/^llum_/, '');
   if (name === 'on') return '💡 Encén';
   if (name === 'off') return '⭕ Apaga';
@@ -407,7 +420,7 @@ async function loadLlum() {
     }
     if (!data.commands.length) {
       setBadge(llumBadge, 'sense codis', 'badge-muted');
-      llumBody.innerHTML = '<p class="muted">Aprèn els codis amb l\'app de Broadlink i enganxa\'ls a broadlinkCodes.json.</p>';
+      llumBody.innerHTML = '<p class="muted">Aprèn els codis amb scripts/learn-rf.js (llum) o learn-ir.js (AC).</p>';
       llumCommandsKey = null;
       return;
     }
@@ -746,7 +759,13 @@ async function loadTv() {
     const data = await api('/api/smartthings/status');
     if (data.status === 'unconfigured') {
       setBadge(tvBadge, 'no configurat', 'badge-muted');
-      tvBody.innerHTML = '<p class="muted">Afegeix SMARTTHINGS_PAT i SMARTTHINGS_TV_DEVICE_ID al .env del servidor.</p>';
+      tvBody.innerHTML = '<p class="muted">Configura l\'OAuth de SmartThings (CLIENT_ID/SECRET/REDIRECT_URI) i el TV_DEVICE_ID al .env.</p>';
+      tvUiBuilt = false;
+      return;
+    }
+    if (data.status === 'unauthorized') {
+      setBadge(tvBadge, 'sense autoritzar', 'badge-muted');
+      tvBody.innerHTML = '<a class="btn-connect" href="/api/smartthings/login">Connecta amb SmartThings</a>';
       tvUiBuilt = false;
       return;
     }

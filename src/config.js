@@ -37,6 +37,10 @@ const config = {
   smartthings: {
     pat: process.env.SMARTTHINGS_PAT || '',
     deviceId: process.env.SMARTTHINGS_TV_DEVICE_ID || '',
+    // OAuth (els PAT nous caduquen a les 24h; amb OAuth el token es renova sol)
+    clientId: process.env.SMARTTHINGS_CLIENT_ID || '',
+    clientSecret: process.env.SMARTTHINGS_CLIENT_SECRET || '',
+    redirectUri: process.env.SMARTTHINGS_REDIRECT_URI || '',
   },
   broadlink: {
     ip: process.env.BROADLINK_IP || '',

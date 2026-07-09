@@ -55,8 +55,27 @@ async function connect() {
       502
     );
   }
-  const device = devices[0];
-  await withTimeout(device.auth(), OP_TIMEOUT_MS, 'El Broadlink no ha acceptat l\'autenticació');
+  let device = devices[0];
+  // Tipus nous que el catàleg de node-broadlink no coneix (p. ex. 0xaf8b del
+  // RM4 recent): la llibreria retorna un Device genèric sense mètodes IR/RF.
+  // El protocol és el mateix, així que l'embolcallem com a RM4 pro (IR + RF,
+  // superconjunt del mini — la llum de cristall va per RF).
+  if (typeof device.sendData !== 'function') {
+    device = new broadlink.Rm4pro(
+      device.host, device.mac, device.deviceType, 'RM4 pro', 'Broadlink', device.name, device.isLocked
+    );
+  }
+  try {
+    await withTimeout(device.auth(), OP_TIMEOUT_MS, 'El Broadlink no ha acceptat l\'autenticació');
+  } catch (err) {
+    if (/65535|-1/.test(String(err.message))) {
+      throw httpError(
+        "El Broadlink està bloquejat per a control local: desactiva 'Lock device' als ajustos del dispositiu dins l'app de Broadlink",
+        502
+      );
+    }
+    throw err;
+  }
   console.log(`[broadlink] Connectat: ${device.model || `tipus ${device.deviceType}`} a ${config.broadlink.ip}`);
   return device;
 }

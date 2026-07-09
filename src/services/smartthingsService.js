@@ -1,10 +1,16 @@
 const config = require('../config');
+const store = require('./store');
 
 /**
  * Servei SmartThings: client de la SmartThings REST API per controlar la TV
  * Samsung (i, en el futur, altres dispositius vinculats al compte).
  *
- * - Autenticació amb un Personal Access Token (PAT) via .env, com a Bearer.
+ * - Autenticació preferida: OAuth (SMARTTHINGS_CLIENT_ID/SECRET/REDIRECT_URI
+ *   al .env; tokens a data/store.json amb refresc automàtic, com Spotify).
+ *   Els PAT creats des de finals del 2024 caduquen a les 24h, per això només
+ *   queden com a alternativa (SMARTTHINGS_PAT).
+ * - El refresh token de SmartThings ROTA a cada refresc i caduca als 30 dies
+ *   si no s'usa: un temporitzador de manteniment el refresca cada 12h.
  * - Segueix el mateix patró que tuyaService.js: fetch directe contra l'API,
  *   sense cap dependència npm.
  * - Els errors es converteixen en missatges entenedors amb codi HTTP i mai
@@ -14,6 +20,10 @@ const config = require('../config');
  */
 
 const API_BASE = 'https://api.smartthings.com/v1';
+const AUTH_BASE = 'https://api.smartthings.com';
+const OAUTH_SCOPES = 'r:devices:* x:devices:*';
+const TOKEN_KEY = 'smartthingsTokens';
+const REFRESH_MARGIN_MS = 5 * 60 * 1000; // renova 5 min abans de caducar
 
 // Noms amistosos → app_id de Tizen (Samsung). Es poden afegir més o passar
 // directament un app_id cru al body de /launch-app. Aquests valors són els
@@ -31,25 +41,146 @@ const APP_IDS = {
   spotify: '3201606009684',
 };
 
-function isConfigured() {
-  return !!(config.smartthings.pat && config.smartthings.deviceId);
-}
-
 function httpError(message, status) {
   return Object.assign(new Error(message), { status });
 }
 
-async function request(method, path, bodyObj) {
-  if (!config.smartthings.pat) {
-    throw httpError('SmartThings no configurat (revisa el .env)', 503);
+// --- OAuth ---------------------------------------------------------
+
+function oauthConfigured() {
+  const s = config.smartthings;
+  return !!(s.clientId && s.clientSecret && s.redirectUri);
+}
+
+function hasTokens() {
+  return !!store.get(TOKEN_KEY);
+}
+
+function isConfigured() {
+  return !!(config.smartthings.deviceId && (config.smartthings.pat || oauthConfigured()));
+}
+
+// Cal que l'usuari passi per /api/smartthings/login? (OAuth a punt però sense tokens)
+function needsAuthorization() {
+  return oauthConfigured() && !hasTokens() && !config.smartthings.pat;
+}
+
+function getAuthUrl() {
+  if (!oauthConfigured()) {
+    throw httpError('OAuth de SmartThings no configurat (SMARTTHINGS_CLIENT_ID/SECRET/REDIRECT_URI al .env)', 503);
   }
+  const params = new URLSearchParams({
+    client_id: config.smartthings.clientId,
+    response_type: 'code',
+    redirect_uri: config.smartthings.redirectUri,
+    scope: OAUTH_SCOPES,
+  });
+  return `${AUTH_BASE}/oauth/authorize?${params}`;
+}
+
+async function tokenRequest(params) {
+  const basic = Buffer.from(
+    `${config.smartthings.clientId}:${config.smartthings.clientSecret}`
+  ).toString('base64');
+  let res;
+  try {
+    res = await fetch(`${AUTH_BASE}/oauth/token`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${basic}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams(params).toString(),
+    });
+  } catch (err) {
+    throw httpError(`No s'ha pogut contactar amb SmartThings (OAuth): ${err.message}`, 502);
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = data.error_description || data.error || `error ${res.status}`;
+    throw httpError(`SmartThings OAuth: ${msg}`, res.status === 400 || res.status === 401 ? 401 : 502);
+  }
+  return data;
+}
+
+function saveTokens(data, prev) {
+  store.set(TOKEN_KEY, {
+    access_token: data.access_token,
+    // El refresh token ROTA: si no en ve un de nou, conserva l'anterior
+    refresh_token: data.refresh_token || (prev && prev.refresh_token) || null,
+    expires_at: Date.now() + (data.expires_in ? data.expires_in * 1000 : 24 * 3600 * 1000),
+  });
+}
+
+// Bescanvia el codi del callback per tokens (un sol cop, en autoritzar)
+async function handleCallback(code) {
+  const data = await tokenRequest({
+    grant_type: 'authorization_code',
+    code,
+    client_id: config.smartthings.clientId,
+    redirect_uri: config.smartthings.redirectUri,
+  });
+  saveTokens(data, null);
+  console.log('[smartthings] Autoritzat via OAuth; tokens desats a data/store.json');
+}
+
+let refreshPromise = null; // evita refrescos simultanis (el refresh token rota!)
+function refreshTokens() {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      const prev = store.get(TOKEN_KEY);
+      if (!prev || !prev.refresh_token) {
+        throw httpError("SmartThings sense autoritzar: obre /api/smartthings/login", 401);
+      }
+      const data = await tokenRequest({
+        grant_type: 'refresh_token',
+        refresh_token: prev.refresh_token,
+        client_id: config.smartthings.clientId,
+      });
+      saveTokens(data, prev);
+    })().finally(() => { refreshPromise = null; });
+  }
+  return refreshPromise;
+}
+
+async function getAccessToken() {
+  if (oauthConfigured() && hasTokens()) {
+    let tokens = store.get(TOKEN_KEY);
+    if (Date.now() > tokens.expires_at - REFRESH_MARGIN_MS) {
+      await refreshTokens();
+      tokens = store.get(TOKEN_KEY);
+    }
+    return tokens.access_token;
+  }
+  if (config.smartthings.pat) return config.smartthings.pat;
+  if (oauthConfigured()) {
+    throw httpError("SmartThings sense autoritzar: obre /api/smartthings/login", 401);
+  }
+  throw httpError('SmartThings no configurat (revisa el .env)', 503);
+}
+
+// Manteniment: el refresh token caduca als 30 dies si no s'usa; refrescant
+// cada 12h es manté viu encara que no s'obri mai la vista TV
+if (oauthConfigured()) {
+  const keepalive = setInterval(() => {
+    if (hasTokens()) {
+      refreshTokens().catch((err) => console.warn(`[smartthings] keepalive: ${err.message}`));
+    }
+  }, 12 * 3600 * 1000);
+  if (keepalive.unref) keepalive.unref();
+}
+
+// --- Client HTTP ---------------------------------------------------
+
+async function request(method, path, bodyObj, retrying = false) {
+  const token = await getAccessToken();
 
   let res;
   try {
     res = await fetch(API_BASE + path, {
       method,
       headers: {
-        Authorization: `Bearer ${config.smartthings.pat}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: bodyObj ? JSON.stringify(bodyObj) : undefined,
@@ -63,10 +194,20 @@ async function request(method, path, bodyObj) {
 
   if (!res.ok) {
     if (res.status === 401) {
-      throw httpError('PAT de SmartThings invàlid o caducat', 401);
+      // Amb OAuth: prova un refresc forçat i reintenta un sol cop
+      if (!retrying && oauthConfigured() && hasTokens()) {
+        try { await refreshTokens(); } catch (e) { throw httpError(`${e.message}`, 401); }
+        return request(method, path, bodyObj, true);
+      }
+      throw httpError(
+        oauthConfigured()
+          ? "Autorització de SmartThings caducada: torna a passar per /api/smartthings/login"
+          : 'PAT de SmartThings invàlid o caducat',
+        401
+      );
     }
     if (res.status === 403) {
-      throw httpError('El PAT no té permisos suficients per a aquesta acció', 403);
+      throw httpError('El token no té permisos suficients per a aquesta acció', 403);
     }
     if (res.status === 404) {
       throw httpError('Dispositiu SmartThings no trobat (revisa el device_id)', 404);
@@ -184,6 +325,9 @@ async function listDevices() {
 
 module.exports = {
   isConfigured,
+  needsAuthorization,
+  getAuthUrl,
+  handleCallback,
   getTvStatus,
   setPower,
   setVolume,

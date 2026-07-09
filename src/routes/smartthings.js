@@ -4,11 +4,40 @@ const discordService = require('../services/discordService');
 
 const router = express.Router();
 
+// GET /api/smartthings/login — inicia l'autorització OAuth (redirigeix a Samsung)
+router.get('/login', (req, res) => {
+  try {
+    res.redirect(smartthingsService.getAuthUrl());
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+});
+
+// GET /api/smartthings/callback — retorn de Samsung amb el codi d'autorització
+router.get('/callback', async (req, res) => {
+  try {
+    const { code, error } = req.query || {};
+    if (error) {
+      return res.status(400).send(`SmartThings ha denegat l'autorització: ${error}`);
+    }
+    if (!code) {
+      return res.status(400).send("Falta el codi d'autorització a la resposta de SmartThings");
+    }
+    await smartthingsService.handleCallback(String(code));
+    res.redirect('/');
+  } catch (err) {
+    res.status(err.status || 500).send(`No s'ha pogut completar l'autorització: ${err.message}`);
+  }
+});
+
 // GET /api/smartthings/status — estat actual de la TV (encès, volum, mute, app)
 router.get('/status', async (req, res) => {
   try {
     if (!smartthingsService.isConfigured()) {
       return res.json({ ok: true, status: 'unconfigured' });
+    }
+    if (smartthingsService.needsAuthorization()) {
+      return res.json({ ok: true, status: 'unauthorized' });
     }
     const tv = await smartthingsService.getTvStatus();
     res.json({ ok: true, status: 'connected', tv });
