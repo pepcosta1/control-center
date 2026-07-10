@@ -15,6 +15,10 @@ const config = {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean),
+  supabase: {
+    url: process.env.SUPABASE_URL || '',
+    anonKey: process.env.SUPABASE_ANON_KEY || '',
+  },
   meross: {
     email: process.env.MEROSS_EMAIL || '',
     password: process.env.MEROSS_PASSWORD || '',

@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const config = require('../config');
+const supabase = require('../services/supabaseService');
 const { isRestricted } = require('../middleware/auth');
 
 const router = express.Router();
@@ -35,13 +36,29 @@ router.post('/login', async (req, res) => {
     if (isLocked(req.ip)) {
       return res.status(429).json({ ok: false, error: 'Massa intents fallits. Torna-ho a provar d\'aquí 15 minuts.' });
     }
-    if (!config.admin.passwordHash) {
-      return res.status(500).json({ ok: false, error: 'ADMIN_PASSWORD_HASH no configurat al .env' });
+
+    // 1) Supabase Auth (si està configurat): el camp "username" és l'email
+    let user = null;
+    if (supabase.isConfigured() && username.includes('@')) {
+      try {
+        user = await supabase.verifyCredentials(username, password);
+      } catch (err) {
+        // Supabase caigut o pausat: no bloquegem el login, cau al fallback local
+        console.warn(`[auth] Supabase no disponible (${err.message}); es prova el login local`);
+      }
     }
 
-    const userOk = username === config.admin.user;
-    const passOk = await bcrypt.compare(password, config.admin.passwordHash);
-    if (!userOk || !passOk) {
+    // 2) Fallback local: usuari admin del .env (porta d'emergència)
+    if (!user && config.admin.passwordHash) {
+      const userOk = username === config.admin.user;
+      const passOk = await bcrypt.compare(password, config.admin.passwordHash);
+      if (userOk && passOk) user = { name: username };
+    }
+
+    if (!user) {
+      if (!supabase.isConfigured() && !config.admin.passwordHash) {
+        return res.status(500).json({ ok: false, error: 'Cap mètode de login configurat al .env (Supabase o ADMIN_PASSWORD_HASH)' });
+      }
       registerFailure(req.ip);
       return res.status(401).json({ ok: false, error: 'Credencials incorrectes' });
     }
@@ -52,8 +69,8 @@ router.post('/login', async (req, res) => {
       if (err) {
         return res.status(500).json({ ok: false, error: 'No s\'ha pogut crear la sessió' });
       }
-      req.session.user = { name: username };
-      res.json({ ok: true, user: { name: username } });
+      req.session.user = user;
+      res.json({ ok: true, user });
     });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
