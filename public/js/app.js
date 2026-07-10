@@ -1423,10 +1423,26 @@ async function loadRecent() {
   }
 }
 
+// Escalfa la memòria cau de lletres del servidor quan canvia la cançó,
+// perquè el botó Lletra obri a l'instant (fire-and-forget, un cop per cançó)
+let lyricsPrefetchedUri = null;
+function prefetchLyrics(track) {
+  if (!track || track.uri === lyricsPrefetchedUri) return;
+  lyricsPrefetchedUri = track.uri;
+  const params = new URLSearchParams({
+    track: track.name,
+    artist: track.artists.split(',')[0].trim(),
+  });
+  if (track.album) params.set('album', track.album);
+  if (track.durationMs) params.set('duration', Math.round(track.durationMs / 1000));
+  fetch(`/api/spotify/lyrics?${params.toString()}`).catch(() => {});
+}
+
 function updateSpotifyPlayer(np) {
   spotifyPlaying = np.playing;
   currentTrack = np.track;
   playbackPos = { progressMs: np.progressMs || 0, at: Date.now(), playing: !!np.playing };
+  prefetchLyrics(np.track);
   const cover = document.getElementById('sp-cover');
   const title = document.getElementById('sp-title');
   const artist = document.getElementById('sp-artist');
