@@ -1,0 +1,12 @@
+# Tot el projecte es desplega a Linux (VM Oracle): finals de línia LF sempre,
+# encara que es treballi des de Windows. Evita que git converteixi a CRLF i
+# trenqui els scripts de shell (errors "\r: command not found").
+* text=auto eol=lf
+
+# Fitxers binaris: ni tocar-los
+*.png binary
+*.jpg binary
+*.ico binary
+
+# Scripts de Windows que sí que volen CRLF
+*.vbs text eol=crlf

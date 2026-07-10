@@ -58,3 +58,6 @@ La VM **no** té el repo git: s'actualitza per scp. El `.env` de la VM és la fo
 `npm run dev` (Node 24 al PC) i http://localhost:3000. El `.env` local existeix i funciona. No deixis servidors locals engegats: producció és la VM.
 
 molt important tu no fasis commits al github aixo ja ho fara l'usuari. Es important que quan acabis de editar o crear, diguis a l'usuari ja pots fer un commit i push si vols.
+
+Despres de fer els canvis que et diu l'usuari, digali quins arxius s'han de fer commit el nom que posaries en el commit. Espera a que l'usuari et digui que la fet i despres fes la documentacio al obsidian:
+index de commits: posa el nou commit, i posa coses que es podrien modificar al fitxer pendents i problemes oberts i acaba amb el que he apres si fa falta posar algo.
