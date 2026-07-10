@@ -37,7 +37,7 @@ Totes les respostes API segueixen el mateix contracte:
 | Auth | `/api/auth` | `middleware/auth.js` | sessió (bcrypt) | 1 usuari admin, 5 intents/15min per IP |
 | Meross | `/api/meross` | `merossService.js` | núvol (`meross-cloud`) | 2 endolls mss710 |
 | Tuya | `/api/tuya` | `tuyaService.js` | núvol, HMAC-SHA256 | termòstat, sense dependència npm |
-| SmartThings | `/api/smartthings` | `smartthingsService.js` | núvol (PAT) | control de la TV |
+| SmartThings | `/api/smartthings` | `smartthingsService.js` | núvol (OAuth) | control de la TV; tokens amb refresc automàtic |
 | AC (climatitzador) | `/api/ac` | `acService.js` | IR (Broadlink) | estat *assumit*, no confirmat |
 | Broadlink | `/api/broadlink` | `broadlinkService.js` | IR local | comandes genèriques apreses |
 | Roomba | `/api/roomba` | `roombaService.js` | LAN local (`dorita980`) | connexió puntual + cooldown 1 min |
@@ -70,6 +70,7 @@ frontend i, si es toca `public/`, pujar la versió `CACHE` de `public/sw.js`.
 - `POST /temperature` — `{ value }`
 
 ### SmartThings (`/api/smartthings`)
+- `GET /login`, `GET /callback` — OAuth (autorització un sol cop)
 - `GET /status`, `GET /devices`
 - `POST /power`, `POST /volume`, `POST /mute`, `POST /launch-app`
 
@@ -112,8 +113,8 @@ frontend i, si es toca `public/`, pujar la versió `CACHE` de `public/sw.js`.
 
 ## 5. Persistència
 
-- `data/store.json` (via `src/services/store.js`): tokens Spotify (amb
-  refresc automàtic) i llista de la compra.
+- `data/store.json` (via `src/services/store.js`): tokens Spotify i
+  SmartThings (tots dos amb refresc automàtic) i llista de la compra.
 - Sense base de dades: tot és fitxer JSON local a la VM.
 
 ## 6. Desplegament (producció)
@@ -140,7 +141,8 @@ MEROSS_EMAIL, MEROSS_PASSWORD
 SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI
 DISCORD_BOT_TOKEN, DISCORD_CHANNEL_ID
 TUYA_ACCESS_ID, TUYA_ACCESS_SECRET, TUYA_DEVICE_ID_TERMOSTAT, TUYA_REGION
-SMARTTHINGS_PAT, SMARTTHINGS_TV_DEVICE_ID
+SMARTTHINGS_CLIENT_ID, SMARTTHINGS_CLIENT_SECRET, SMARTTHINGS_REDIRECT_URI,
+SMARTTHINGS_TV_DEVICE_ID, SMARTTHINGS_PAT (alternativa antiga; caduquen a les 24h)
 BROADLINK_IP
 ROOMBA_IP, ROOMBA_BLID, ROOMBA_PASSWORD
 DECO_HOST, DECO_USERNAME, DECO_PASSWORD, DECO_PRESENCE_MAC
