@@ -127,10 +127,19 @@ async function api(method, path, body) {
 
 async function nowPlaying() {
   const d = await api('GET', '/me/player');
-  if (!d || !d.item) return { playing: false, track: null };
+  if (!d || !d.item) {
+    return {
+      playing: false,
+      track: null,
+      repeatState: (d && d.repeat_state) || 'off',
+      shuffleState: !!(d && d.shuffle_state),
+    };
+  }
   return {
     playing: !!d.is_playing,
     progressMs: d.progress_ms,
+    repeatState: d.repeat_state || 'off',
+    shuffleState: !!d.shuffle_state,
     device: d.device ? d.device.name : null,
     volumePercent: d.device ? d.device.volume_percent : null,
     track: {
@@ -197,6 +206,10 @@ async function setRepeat(state) {
     throw httpError(`Mode de repetició invàlid (${REPEAT_STATES.join(', ')})`, 400);
   }
   await api('PUT', `/me/player/repeat?state=${state}`);
+}
+
+async function setShuffle(on) {
+  await api('PUT', `/me/player/shuffle?state=${on ? 'true' : 'false'}`);
 }
 
 async function recentlyPlayed(limit = 10) {
@@ -299,6 +312,7 @@ module.exports = {
   seek,
   setVolume,
   setRepeat,
+  setShuffle,
   devices,
   transferPlayback,
   search,

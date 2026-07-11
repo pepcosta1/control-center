@@ -915,6 +915,8 @@ let playbackPos = { progressMs: 0, at: 0, playing: false };
 let seekDragging = false;
 let volDragging = false;
 let progressTimer = null;
+let repeatState = 'off'; // off | context (llista) | track (cançó)
+let shuffleOn = false;
 
 async function refreshDevices() {
   const sel = document.getElementById('sp-device');
@@ -947,6 +949,7 @@ function updateProgressBar() {
   if (!bar) return;
   const pos = Math.min(currentPositionMs(), currentTrack.durationMs);
   bar.value = Math.round((pos / currentTrack.durationMs) * 1000);
+  updateSliderFill(bar);
   document.getElementById('sp-time-cur').textContent = fmtTime(pos);
   document.getElementById('sp-time-tot').textContent = fmtTime(currentTrack.durationMs);
 }
@@ -970,8 +973,11 @@ function buildSpotifyPlayer() {
       <button id="sp-playpause" class="btn-round btn-big" title="Reprodueix/Pausa">${icon('play')}</button>
       <button id="sp-next" class="btn-round" title="Següent">${icon('next')}</button>
     </div>
-    <button id="sp-lyrics" class="btn-small btn-lyrics">${icon('mic')} Lletra</button>
-    <button id="sp-repeat" class="btn-small btn-repeat">${icon('repeat')} Repetir</button>
+    <div class="player-secondary">
+      <button id="sp-shuffle" class="btn-toggle" title="Aleatori">${icon('shuffle')}</button>
+      <button id="sp-lyrics" class="btn-small btn-lyrics">${icon('mic')} Lletra</button>
+      <button id="sp-repeat" class="btn-toggle" title="Repetir">${icon('repeat')}</button>
+    </div>
     <div class="player-volume">
       <span class="vol-icon">${icon('volDown')}</span>
       <input type="range" id="sp-volume" min="0" max="100" value="50" step="1" aria-label="Volum">
@@ -1033,10 +1039,43 @@ function buildSpotifyPlayer() {
   });
   document.getElementById('sp-lyrics').addEventListener('click', openLyrics);
 
+  // Repetició: cada toc rota off → llista → cançó → off
+  const REPEAT_NEXT = { off: 'context', context: 'track', track: 'off' };
+  document.getElementById('sp-repeat').addEventListener('click', async () => {
+    const next = REPEAT_NEXT[repeatState] || 'context';
+    try {
+      await api('/api/spotify/repeat', {
+        method: 'POST',
+        body: JSON.stringify({ state: next }),
+      });
+      repeatState = next;
+      updateRepeatButton();
+    } catch (err) {
+      showErr(err.message);
+    }
+  });
+  updateRepeatButton();
+
+  // Aleatori: commuta engegat/apagat
+  document.getElementById('sp-shuffle').addEventListener('click', async () => {
+    try {
+      await api('/api/spotify/shuffle', {
+        method: 'POST',
+        body: JSON.stringify({ on: !shuffleOn }),
+      });
+      shuffleOn = !shuffleOn;
+      updateShuffleButton();
+    } catch (err) {
+      showErr(err.message);
+    }
+  });
+  updateShuffleButton();
+
   // Barra de progrés: arrossega per moure't dins de la cançó
   const seekBar = document.getElementById('sp-seek');
   seekBar.addEventListener('input', () => {
     seekDragging = true;
+    updateSliderFill(seekBar);
     if (currentTrack && currentTrack.durationMs) {
       document.getElementById('sp-time-cur').textContent =
         fmtTime((seekBar.value / 1000) * currentTrack.durationMs);
@@ -1063,7 +1102,10 @@ function buildSpotifyPlayer() {
 
   // Volum
   const volBar = document.getElementById('sp-volume');
-  volBar.addEventListener('input', () => { volDragging = true; });
+  volBar.addEventListener('input', () => {
+    volDragging = true;
+    updateSliderFill(volBar);
+  });
   volBar.addEventListener('change', async () => {
     try {
       await api('/api/spotify/volume', {
@@ -1076,6 +1118,8 @@ function buildSpotifyPlayer() {
       volDragging = false;
     }
   });
+  updateSliderFill(seekBar);
+  updateSliderFill(volBar);
 
   // Selector de dispositiu
   const deviceSel = document.getElementById('sp-device');
@@ -1444,8 +1488,45 @@ function prefetchLyrics(track) {
   fetch(`/api/spotify/lyrics?${params.toString()}`).catch(() => {});
 }
 
+// Pinta el botó de repetició segons el mode actual
+const REPEAT_LABELS = {
+  off: 'Repetir',
+  context: 'Repeteix la llista',
+  track: 'Repeteix la cançó',
+};
+function updateRepeatButton() {
+  const btn = document.getElementById('sp-repeat');
+  if (!btn) return;
+  btn.innerHTML = icon(repeatState === 'track' ? 'repeatOne' : 'repeat');
+  btn.title = REPEAT_LABELS[repeatState] || 'Repetir';
+  btn.classList.toggle('active', repeatState !== 'off');
+}
+
+function updateShuffleButton() {
+  const btn = document.getElementById('sp-shuffle');
+  if (!btn) return;
+  btn.title = shuffleOn ? 'Aleatori activat' : 'Aleatori';
+  btn.classList.toggle('active', shuffleOn);
+}
+
+// Omple la part recorreguda dels sliders (a l'escriptori el navegador no ho fa sol)
+function updateSliderFill(el) {
+  const min = Number(el.min) || 0;
+  const max = Number(el.max) || 100;
+  const pct = ((Number(el.value) - min) / (max - min)) * 100;
+  el.style.setProperty('--fill', `${Math.min(100, Math.max(0, pct))}%`);
+}
+
 function updateSpotifyPlayer(np) {
   spotifyPlaying = np.playing;
+  if (np.repeatState && np.repeatState !== repeatState) {
+    repeatState = np.repeatState;
+    updateRepeatButton();
+  }
+  if (typeof np.shuffleState === 'boolean' && np.shuffleState !== shuffleOn) {
+    shuffleOn = np.shuffleState;
+    updateShuffleButton();
+  }
   currentTrack = np.track;
   playbackPos = { progressMs: np.progressMs || 0, at: Date.now(), playing: !!np.playing };
   prefetchLyrics(np.track);
@@ -1474,6 +1555,7 @@ function updateSpotifyPlayer(np) {
   const volBar = document.getElementById('sp-volume');
   if (volBar && !volDragging && typeof np.volumePercent === 'number') {
     volBar.value = np.volumePercent;
+    updateSliderFill(volBar);
   }
 }
 

@@ -137,6 +137,20 @@ router.post('/repeat', async (req, res) => {
   }
 });
 
+// POST /api/spotify/shuffle — body: { on: true | false }
+router.post('/shuffle', async (req, res) => {
+  try {
+    const { on } = req.body || {};
+    if (typeof on !== 'boolean') {
+      return res.status(400).json({ ok: false, error: 'Falta el camp "on" (true/false)' });
+    }
+    await spotify.setShuffle(on);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+});
+
 // GET /api/spotify/devices — dispositius Spotify disponibles
 router.get('/devices', async (req, res) => {
   try {

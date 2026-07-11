@@ -695,12 +695,57 @@ input, select { font-family: inherit; }
   text-align: center;
 }
 
-#sp-seek {
+/* Sliders del reproductor: estil propi (el natiu de l'escriptori és lleig).
+   La part recorreguda es pinta amb --fill, que actualitza el JS. */
+#sp-seek, #sp-volume {
   flex: 1;
   min-width: 0;
-  accent-color: var(--accent);
+  -webkit-appearance: none;
+  appearance: none;
   height: 6px;
+  border-radius: 999px;
   cursor: pointer;
+  background: linear-gradient(
+    to right,
+    var(--bar-color) var(--fill, 0%),
+    rgba(var(--ink-rgb), 0.15) var(--fill, 0%)
+  );
+  box-shadow: inset 0 1px 2px rgba(var(--shadow-rgb), 0.35);
+}
+
+#sp-seek { --bar-color: var(--accent); }
+#sp-volume { --bar-color: var(--success); }
+
+#sp-seek::-webkit-slider-thumb, #sp-volume::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bar-color);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 1px 5px rgba(var(--shadow-rgb), 0.6);
+  transition: transform 0.15s ease;
+}
+
+#sp-seek::-webkit-slider-thumb:hover, #sp-volume::-webkit-slider-thumb:hover,
+#sp-seek::-webkit-slider-thumb:active, #sp-volume::-webkit-slider-thumb:active {
+  transform: scale(1.2);
+}
+
+#sp-seek::-moz-range-thumb, #sp-volume::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bar-color);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 1px 5px rgba(var(--shadow-rgb), 0.6);
+}
+
+#sp-seek::-moz-range-track, #sp-volume::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: transparent;
 }
 
 .player-controls {
@@ -752,13 +797,6 @@ input, select { font-family: inherit; }
 
 .vol-icon { font-size: 0.85rem; flex-shrink: 0; }
 
-#sp-volume {
-  flex: 1;
-  min-width: 0;
-  accent-color: var(--success);
-  height: 6px;
-  cursor: pointer;
-}
 
 .player-devices { margin-bottom: 0.75rem; }
 
@@ -988,10 +1026,37 @@ details[open] .recent-title { color: var(--accent); }
 
 .shop-delete:hover { color: var(--danger); background: var(--card-hover); }
 
-/* Botó i modal de lletra */
-.btn-lyrics {
-  display: block;
-  margin: 0 auto 0.85rem;
+/* Fila secundària del reproductor: aleatori · lletra · repetició */
+.player-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-bottom: 0.85rem;
+}
+
+/* Botons d'icona commutables (aleatori i repetició) */
+.btn-toggle {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, transform 0.15s cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+
+.btn-toggle .icon { width: 20px; height: 20px; margin: 0; }
+
+.btn-toggle:hover { color: var(--text); }
+.btn-toggle:active { transform: scale(0.9); }
+
+.btn-toggle.active {
+  color: var(--accent);
+  filter: drop-shadow(0 0 6px rgba(var(--glow-rgb), 0.5));
 }
 
 .lyrics-overlay {
