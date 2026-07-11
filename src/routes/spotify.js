@@ -123,6 +123,20 @@ router.post('/volume', async (req, res) => {
   }
 });
 
+// POST /api/spotify/repeat — body: { state: 'track' | 'context' | 'off' }
+router.post('/repeat', async (req, res) => {
+  try {
+    const { state } = req.body || {};
+    if (!state) {
+      return res.status(400).json({ ok: false, error: 'Falta el camp "state" (track, context, off)' });
+    }
+    await spotify.setRepeat(state);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+});
+
 // GET /api/spotify/devices — dispositius Spotify disponibles
 router.get('/devices', async (req, res) => {
   try {

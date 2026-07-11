@@ -190,6 +190,15 @@ async function previous() {
   await api('POST', '/me/player/previous');
 }
 
+const REPEAT_STATES = ['track', 'context', 'off'];
+
+async function setRepeat(state) {
+  if (!REPEAT_STATES.includes(state)) {
+    throw httpError(`Mode de repetició invàlid (${REPEAT_STATES.join(', ')})`, 400);
+  }
+  await api('PUT', `/me/player/repeat?state=${state}`);
+}
+
 async function recentlyPlayed(limit = 10) {
   const d = await api('GET', `/me/player/recently-played?limit=${Math.min(Math.max(limit, 1), 50)}`);
   return (d.items || []).map((item) => ({
@@ -289,6 +298,7 @@ module.exports = {
   playTrack,
   seek,
   setVolume,
+  setRepeat,
   devices,
   transferPlayback,
   search,
