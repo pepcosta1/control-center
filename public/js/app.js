@@ -1032,9 +1032,12 @@ function buildSpotifyPlayer() {
 
   document.getElementById('sp-prev').addEventListener('click', cmd('/api/spotify/previous'));
   document.getElementById('sp-next').addEventListener('click', cmd('/api/spotify/next'));
-  // El DJ de Spotify és un context de reproducció especial (no hi ha API oficial)
-  document.getElementById('sp-dj').addEventListener('click',
-    cmd('/api/spotify/play', { contextUri: 'spotify:playlist:37i9dQZF1EYkqdzj48dyYq' }));
+  // DJ de Spotify: no es pot controlar per l'API pública (el context i la cua
+  // arriben buits, i la veu només la dispara el botó oficial). Obrim el DJ a
+  // l'app de Spotify, que és qui el sap engegar i canviar d'estil.
+  document.getElementById('sp-dj').addEventListener('click', () => {
+    window.location.href = 'spotify:playlist:37i9dQZF1EYkqdzj48dyYq';
+  });
   document.getElementById('sp-playpause').addEventListener('click', async () => {
     try {
       await api(spotifyPlaying ? '/api/spotify/pause' : '/api/spotify/play', { method: 'POST' });
