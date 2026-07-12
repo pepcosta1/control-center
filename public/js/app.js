@@ -1008,7 +1008,9 @@ function buildSpotifyPlayer() {
       <summary class="recent-title">Escoltades recentment ▾</summary>
       <div id="sp-recent" class="recent-list"><p class="muted">Carregant…</p></div>
     </details>
-    <button id="sp-dj" class="btn-dj" title="Engega el DJ de Spotify">DJ</button>
+    <button id="sp-dj" class="btn-dj" title="Engega el DJ de Spotify">DJ<img
+      src="https://lexicon-assets.spotifycdn.com/DJ-Beta-CoverArt-300.jpg" alt=""
+      onerror="this.remove()"></button>
   `;
   spotifyUiBuilt = true;
 
