@@ -1274,6 +1274,11 @@ function getLyricsModal() {
         <button id="lyrics-close" class="btn-ghost" title="Tanca">✕</button>
       </div>
       <div id="lyrics-body" class="lyrics-body"></div>
+      <div class="lyrics-controls">
+        <button id="lyrics-prev" class="btn-round" title="Anterior">${icon('prev')}</button>
+        <button id="lyrics-playpause" class="btn-round btn-big" title="Reprodueix/Pausa">${icon('play')}</button>
+        <button id="lyrics-next" class="btn-round" title="Següent">${icon('next')}</button>
+      </div>
     </div>
   `;
   document.body.appendChild(overlay);
@@ -1282,6 +1287,23 @@ function getLyricsModal() {
     if (e.target === overlay) closeLyrics();
   });
   overlay.querySelector('#lyrics-close').addEventListener('click', closeLyrics);
+
+  // Controls de reproducció dins del modal (la lletra es recarrega sola
+  // quan canvia la cançó, via tickLyrics)
+  const lyricsCmd = (path) => async () => {
+    try {
+      await api(path, { method: 'POST' });
+      setTimeout(loadSpotify, 500);
+    } catch (err) { /* p. ex. cap dispositiu actiu; el sondeig ja ho reflectirà */ }
+  };
+  overlay.querySelector('#lyrics-prev').addEventListener('click', lyricsCmd('/api/spotify/previous'));
+  overlay.querySelector('#lyrics-next').addEventListener('click', lyricsCmd('/api/spotify/next'));
+  overlay.querySelector('#lyrics-playpause').addEventListener('click', async () => {
+    try {
+      await api(spotifyPlaying ? '/api/spotify/pause' : '/api/spotify/play', { method: 'POST' });
+      setTimeout(loadSpotify, 500);
+    } catch (err) { /* idem */ }
+  });
   return overlay;
 }
 
@@ -1400,7 +1422,9 @@ async function openLyrics() {
     alert('No hi ha cap cançó sonant ara mateix.');
     return;
   }
-  getLyricsModal().classList.remove('hidden');
+  const overlay = getLyricsModal();
+  overlay.classList.remove('hidden');
+  overlay.querySelector('#lyrics-playpause').innerHTML = spotifyPlaying ? icon('pause') : icon('play');
   await loadLyricsContent();
   if (!lyricsState.timer) {
     lyricsState.timer = setInterval(tickLyrics, 250);
@@ -1559,6 +1583,8 @@ function updateSpotifyPlayer(np) {
     cover.classList.add('hidden');
   }
   btn.innerHTML = np.playing ? icon('pause') : icon('play');
+  const lyricsBtn = document.getElementById('lyrics-playpause');
+  if (lyricsBtn) lyricsBtn.innerHTML = np.playing ? icon('pause') : icon('play');
   updateProgressBar();
 
   const volBar = document.getElementById('sp-volume');

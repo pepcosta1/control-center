@@ -5,6 +5,9 @@
    ============================================================ */
 
 :root {
+  /* Que el navegador pinti els widgets natius (fletxes de select, barres,
+     spinners) en fosc: sense això, a l'escriptori surten blancs */
+  color-scheme: dark;
   /* Triplets RGB per poder tenyir el vidre amb alfa per mode (clar/fosc) */
   --ink-rgb: 233, 230, 216;      /* to clar: textos translúcids, vores, retícula */
   --bar-rgb: 13, 20, 16;         /* tinta del vidre de topbar i drawer */
@@ -42,6 +45,7 @@
    i la tinta translúcida s'inverteix cap a verd fosc. */
 @media (prefers-color-scheme: light) {
   :root {
+    color-scheme: light;
     --ink-rgb: 31, 45, 36;
     --bar-rgb: 250, 247, 236;
     --shadow-rgb: 82, 90, 74;
@@ -96,6 +100,34 @@ body::before {
     repeating-linear-gradient(0deg, transparent 0 27px, rgba(var(--ink-rgb), 0.025) 27px 28px),
     repeating-linear-gradient(90deg, transparent 0 27px, rgba(var(--ink-rgb), 0.025) 27px 28px),
     var(--bg);
+}
+
+/* Barres de desplaçament del tema (a iOS són superposades i no es toquen).
+   Firefox i Chrome nous fan servir les propietats estàndard; la resta, ::-webkit-. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--ink-rgb), 0.28) transparent;
+}
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-corner { background: transparent; }
+
+::-webkit-scrollbar-thumb {
+  background: rgba(var(--ink-rgb), 0.22);
+  border-radius: 999px;
+  border: 2px solid transparent; /* aire al voltant del polze */
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--ink-rgb), 0.4);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: var(--accent);
+  background-clip: padding-box;
 }
 
 .hidden { display: none !important; }
@@ -1151,6 +1183,22 @@ details[open] .recent-title { color: var(--accent); }
   color: var(--text);
 }
 
+/* Controls de reproducció al peu del modal de lletra */
+.lyrics-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.75rem 1.1rem 1rem;
+  border-top: 1px solid rgba(var(--ink-rgb), 0.08);
+  flex-shrink: 0;
+}
+
+.lyrics-controls .btn-big {
+  width: 48px;
+  height: 48px;
+}
+
 /* Línies sincronitzades (karaoke) */
 .lyric-line {
   color: var(--muted);
@@ -1204,5 +1252,25 @@ details[open] .recent-title { color: var(--accent); }
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* --- Desplegables: fletxa pròpia del tema ---------------------------
+   El botó natiu de l'escriptori (blanc a Windows) no encaixa amb el vidre.
+   Va al final del full perquè guanyi als "background:" shorthand de cada select. */
+.card select, .drawer select {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: var(--glass-deep);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%2393a396' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 12px 8px;
+  padding-right: 2rem;
+}
+
+@media (prefers-color-scheme: light) {
+  .card select, .drawer select {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%235e6f60' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   }
 }
