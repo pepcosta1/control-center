@@ -1008,6 +1008,7 @@ function buildSpotifyPlayer() {
       <summary class="recent-title">Escoltades recentment ▾</summary>
       <div id="sp-recent" class="recent-list"><p class="muted">Carregant…</p></div>
     </details>
+    <button id="sp-dj" class="btn-dj" title="Engega el DJ de Spotify">DJ</button>
   `;
   spotifyUiBuilt = true;
 
@@ -1029,6 +1030,9 @@ function buildSpotifyPlayer() {
 
   document.getElementById('sp-prev').addEventListener('click', cmd('/api/spotify/previous'));
   document.getElementById('sp-next').addEventListener('click', cmd('/api/spotify/next'));
+  // El DJ de Spotify és un context de reproducció especial (no hi ha API oficial)
+  document.getElementById('sp-dj').addEventListener('click',
+    cmd('/api/spotify/play', { contextUri: 'spotify:playlist:37i9dQZF1EYkqdzj48dyYq' }));
   document.getElementById('sp-playpause').addEventListener('click', async () => {
     try {
       await api(spotifyPlaying ? '/api/spotify/pause' : '/api/spotify/play', { method: 'POST' });
