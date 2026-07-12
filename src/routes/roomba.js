@@ -16,6 +16,17 @@ router.get('/status', async (req, res) => {
   }
 });
 
+// GET /api/roomba/map — recorregut de l'última neteja (o de la que està en curs)
+router.get('/map', (req, res) => {
+  res.json({ ok: true, ...roomba.getMap() });
+});
+
+// POST /api/roomba/map/reset — esborra el recorregut guardat
+router.post('/map/reset', (req, res) => {
+  roomba.resetMap();
+  res.json({ ok: true });
+});
+
 // POST /api/roomba/start | /pause | /resume | /stop | /dock
 ['start', 'pause', 'resume', 'stop', 'dock'].forEach((action) => {
   router.post(`/${action}`, async (req, res) => {

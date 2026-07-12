@@ -1199,6 +1199,30 @@ details[open] .recent-title { color: var(--accent); }
   height: 48px;
 }
 
+/* Mapa del Roomba (reutilitza l'overlay/modal de la lletra) */
+.rbmap-body {
+  padding: 1rem 1.25rem 1.25rem;
+  overflow-y: auto;
+}
+
+.rbmap-svg {
+  display: block;
+  width: 100%;
+  max-height: 62vh;
+  max-height: 62dvh;
+  border-radius: 14px;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 49px, rgba(var(--ink-rgb), 0.05) 49px 50px),
+    repeating-linear-gradient(90deg, transparent 0 49px, rgba(var(--ink-rgb), 0.05) 49px 50px),
+    var(--glass-deep);
+  border: 1px solid var(--glass-border);
+}
+
+.rbmap-meta {
+  margin-top: 0.6rem;
+  text-align: center;
+}
+
 /* Línies sincronitzades (karaoke) */
 .lyric-line {
   color: var(--muted);

@@ -41,6 +41,8 @@ const ICON_PATHS = {
   volOff: 'M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4 9.91 6.09 12 8.18V4z',
   search: 'M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
   mic: 'M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z',
+  map: 'M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z',
+  trash: 'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z',
   home: 'M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z',
 };
 
@@ -287,6 +289,8 @@ function buildRoombaUi() {
       <button id="rb-start" class="btn-small">${icon('play')} Neteja</button>
       <button id="rb-pause" class="btn-small">${icon('pause')} Pausa</button>
       <button id="rb-dock" class="btn-small">${icon('home')} A la base</button>
+      <button id="rb-map" class="btn-small">${icon('map')} Mapa</button>
+      <button id="rb-map-reset" class="btn-small">${icon('trash')} Reinicia mapa</button>
     </div>
     <p id="rb-error" class="error hidden"></p>
   `;
@@ -314,6 +318,104 @@ function buildRoombaUi() {
   document.getElementById('rb-start').addEventListener('click', cmd('start'));
   document.getElementById('rb-pause').addEventListener('click', cmd('pause'));
   document.getElementById('rb-dock').addEventListener('click', cmd('dock'));
+  document.getElementById('rb-map').addEventListener('click', openRoombaMap);
+  document.getElementById('rb-map-reset').addEventListener('click', async () => {
+    if (!confirm('Segur que vols esborrar el recorregut guardat del Roomba?')) return;
+    try {
+      await api('/api/roomba/map/reset', { method: 'POST' });
+    } catch (err) {
+      showErr(err.message);
+    }
+  });
+}
+
+// --- Mapa del recorregut del Roomba ---
+let rbMapTimer = null;
+
+function getRoombaMapModal() {
+  let overlay = document.getElementById('rbmap-overlay');
+  if (overlay) return overlay;
+  overlay = document.createElement('div');
+  overlay.id = 'rbmap-overlay';
+  overlay.className = 'lyrics-overlay hidden';
+  overlay.innerHTML = `
+    <div class="lyrics-modal">
+      <div class="lyrics-header">
+        <div id="rbmap-title" class="device-name">Mapa del Roomba</div>
+        <button id="rbmap-close" class="btn-ghost" title="Tanca">✕</button>
+      </div>
+      <div id="rbmap-body" class="rbmap-body"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => {
+    overlay.classList.add('hidden');
+    if (rbMapTimer) { clearInterval(rbMapTimer); rbMapTimer = null; }
+  };
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  overlay.querySelector('#rbmap-close').addEventListener('click', close);
+  return overlay;
+}
+
+// Dibuixa el recorregut: traç ample translúcid = zona neta (el Roomba fa ~33 cm),
+// línia fina = camí exacte, verd = base (0,0), ambre = posició final/actual
+function roombaMapSvg(points) {
+  let minX = Infinity; let minY = Infinity; let maxX = -Infinity; let maxY = -Infinity;
+  points.forEach(([x, y]) => {
+    if (x < minX) minX = x;
+    if (y < minY) minY = y;
+    if (x > maxX) maxX = x;
+    if (y > maxY) maxY = y;
+  });
+  minX = Math.min(minX, 0); minY = Math.min(minY, 0);
+  maxX = Math.max(maxX, 0); maxY = Math.max(maxY, 0);
+  const pad = 50;
+  const w = (maxX - minX) + pad * 2;
+  const h = (maxY - minY) + pad * 2;
+  const px = (x) => x - minX + pad;
+  const py = (y) => maxY - y + pad; // invertim Y: endavant = amunt
+  const pts = points.map(([x, y]) => `${px(x)},${py(y)}`).join(' ');
+  const [fx, fy] = points[points.length - 1];
+  return `
+    <svg class="rbmap-svg" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+      <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-opacity="0.22"
+        stroke-width="33" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-opacity="0.9"
+        stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${px(0)}" cy="${py(0)}" r="14" fill="var(--success)" fill-opacity="0.9"/>
+      <circle cx="${px(fx)}" cy="${py(fy)}" r="11" fill="var(--accent)"/>
+    </svg>`;
+}
+
+async function refreshRoombaMap() {
+  const body = document.getElementById('rbmap-body');
+  const title = document.getElementById('rbmap-title');
+  try {
+    const data = await api('/api/roomba/map');
+    if (!data.points || data.points.length < 2) {
+      body.innerHTML = '<p class="muted">Encara no hi ha cap recorregut gravat.<br>Engega una neteja des del panell i el mapa es dibuixarà sol mentre el robot treballa.</p>';
+      title.textContent = 'Mapa del Roomba';
+      return;
+    }
+    const quan = data.endedAt
+      ? new Date(data.endedAt).toLocaleString('ca', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+      : 'en directe';
+    title.textContent = `Mapa del Roomba · ${quan}`;
+    body.innerHTML = roombaMapSvg(data.points) +
+      `<p class="muted rbmap-meta">🟢 base · 🟠 ${data.endedAt ? 'final del recorregut' : 'posició actual'} · ${data.points.length} punts</p>`;
+    // Mentre neteja, refresquem el dibuix cada 3 segons
+    if (!data.endedAt && !rbMapTimer) rbMapTimer = setInterval(refreshRoombaMap, 3000);
+    if (data.endedAt && rbMapTimer) { clearInterval(rbMapTimer); rbMapTimer = null; }
+  } catch (err) {
+    body.innerHTML = `<p class="error">${err.message}</p>`;
+  }
+}
+
+function openRoombaMap() {
+  const overlay = getRoombaMapModal();
+  overlay.classList.remove('hidden');
+  document.getElementById('rbmap-body').innerHTML = '<p class="muted">Carregant el mapa…</p>';
+  refreshRoombaMap();
 }
 
 async function loadRoomba() {
